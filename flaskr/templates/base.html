@@ -1,24 +1,66 @@
 <!doctype html>
+<html lang="en">
 <title>{% block title %}{% endblock %} - Flaskr</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<nav>
-  <h1>Flaskr</h1>
-  <ul>
-    {% if g.user %}
-      <li><span>{{ g.user['username'] }}</span>
-      <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
-    {% else %}
-      <li><a href="{{ url_for('auth.register') }}">Register</a>
-      <li><a href="{{ url_for('auth.login') }}">Log In</a>
-    {% endif %}
-  </ul>
-</nav>
-<section class="content">
-  <header>
-    {% block header %}{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='global.min.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='clr-ui.min.css') }}" />
+
+
+<body cds-theme="light">
+  <header class="header header-6">
+    <div class="branding">
+      <a href="{{ url_for('index') }}">
+        <cds-icon shape="vm-bug"></cds-icon>
+        <span class="title">Flask App</span>
+      </a>
+    </div>
+    <div class="header-nav">
+      {% if g.user %}
+      
+      <a href="{{ url_for('auth.logout') }}" class="nav-link nav-icon">
+        <cds-icon shape="cloud">Logout</cds-icon>
+      </a>
+      {% else %}
+        {% if request.path == url_for("auth.login") %}
+        <a href="{{ url_for('auth.register') }}" class="nav-link nav-icon">
+          <cds-icon shape="cloud">Register</cds-icon>&nbsp&nbsp
+        </a>
+        {% elif request.path == url_for("auth.register") %}
+        <a href="{{ url_for('auth.login') }}" class="active nav-link nav-icon">
+          <cds-icon shape="folder">Login</cds-icon>
+        </a>
+        {% endif %}
+      {% endif %}
+    </div>
   </header>
+  {% if g.user %}
+  <nav class="subnav">
+    <ul class="nav">
+      <li class="nav-item">
+        <a class="nav-link " href="{{ url_for('blog.index', username=g.user['username']) }}">Browse</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('blog.viewProfile', username=g.user['username']) }}">Profile</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('blog.messages', username=g.user['username']) }}">Messages</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('blog.account', username=g.user['username']) }}">Account</a>
+      </li>
+    </ul>
+    {% endif %}
+  </nav>
+
   {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
+  <div class="flash">{{ message }}</div>
   {% endfor %}
-  {% block content %}{% endblock %}
-</section>
+  <div class="content-container">
+    <div class="content-area">
+      {% block content %}
+      {% endblock %}
+    </div>
+  </div>
+</body>
+
+</html>

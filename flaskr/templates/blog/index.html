@@ -1,28 +1,30 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Posts{% endblock %}</h1>
-  {% if g.user %}
-    <a class="action" href="{{ url_for('blog.create') }}">New</a>
-  {% endif %}
+{% if g.user %}
+<a class="action" href="{{ url_for('blog.create') }}">New</a>
+{% endif %}
 {% endblock %}
 
 {% block content %}
-  {% for post in posts %}
-    <article class="post">
-      <header>
-        <div>
-          <h1>{{ post['title'] }}</h1>
-          <div class="about">by {{ post['username'] }} on {{ post['created'].strftime('%Y-%m-%d') }}</div>
-        </div>
-        {% if g.user['id'] == post['author_id'] %}
-          <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Edit</a>
-        {% endif %}
-      </header>
-      <p class="body">{{ post['body'] }}</p>
-    </article>
-    {% if not loop.last %}
-      <hr>
-    {% endif %}
-  {% endfor %}
+<br>
+<!-- &nbsp&nbsp<span>Welcome {{ g.user['username'] | capitalize}}</span> -->
+{% for profile in profiles %}
+<!-- {% if g.user['id'] != profile['token'] %} -->
+<div class="clr-row">
+  <div class="clr-col-lg-5 clr-col-md-8 clr-col-12">
+    <div class="card">
+      <h3 class="card-header">{{ profile['clientOccupation'] }}, {{ profile['clientGender'][0] }} | {{ profile['clientAge'] }}</h3>
+      <div class="card-block">
+        <h4 class="card-title">{{ profile['clientCast'] }} | {{ profile['present_address'] }}</h4>
+        <div class="card-text">Education: {{ profile['clientEducation'] }}</div>
+      </div>
+      <div class="card-footer">
+        <a href="{{ url_for('blog.viewProfile', username=profile['token']) }}" class="btn btn-sm btn-link">View</a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- {% endif %} -->
+{% endfor %}
 {% endblock %}

@@ -1,15 +1,33 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Register{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-  <form method="post">
-    <label for="username">Username</label>
-    <input name="username" id="username" required>
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Register">
+<div class="login-wrapper">
+  <form class="login" method="post">
+    <!-- <div class="login-header">
+      <div class="logo"></div>
+    </div> -->
+    <div class="login-body">
+      <section class="title">
+        <div class="welcome">Welcome to</div>
+        FlaskApp
+        <div class="hint">One drop at a time</div>
+      </section>
+      <div class="login-group">
+        <clr-input-container>
+          <label class="clr-sr-only">Username</label>
+          <input class="clr-input" type="text" autocomplete="username" name="username" clrInput placeholder="Enter username"
+            [(ngModel)]="form.username" />
+        </clr-input-container>
+        <clr-password-container>
+          <label class="clr-sr-only">Password</label>
+          <input class="clr-input" type="password" autocomplete="current-password" name="password" clrPassword
+            placeholder="Enter password" [(ngModel)]="form.password" />
+        </clr-password-container>
+        <!-- <div class="error active">Invalid user name or password</div> -->
+        <button type="submit" class="btn btn-primary">Register</button>
+        <!-- <a href="javascript://" class="signup">Sign up for an account</a> -->
+      </div>
+    </div>
   </form>
+</div>
 {% endblock %}

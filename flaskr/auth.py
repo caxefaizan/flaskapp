@@ -32,6 +32,7 @@ def register():
             except db.IntegrityError:
                 error = f"User {username} is already registered."
             else:
+                flash("Registered Successfully")
                 return redirect(url_for("auth.login"))
 
         flash(error)
@@ -49,15 +50,13 @@ def login():
             'SELECT * FROM user WHERE username = ?', (username,)
         ).fetchone()
 
-        if user is None:
-            error = 'User not found.'
-        elif not check_password_hash(user['password'], password):
-            error = 'Incorrect password.'
+        if user is None or not check_password_hash(user['password'], password):
+            error = 'User and/or Password Incorrect.'
 
         if error is None:
             session.clear()
             session['user_id'] = user['id']
-            return redirect(url_for('index'))
+            return redirect(url_for('blog.index', username=user['username']))
 
         flash(error)
 
@@ -77,6 +76,7 @@ def load_logged_in_user():
 @bp.route('/logout')
 def logout():
     session.clear()
+    flash("Logged out successfully")
     return redirect(url_for('auth.login'))
 
 def login_required(view):

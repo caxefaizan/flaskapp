@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card">
+    <!-- <div class="card-img">
+        <img src="..." />
+    </div> -->
+    <div class="card-block">
+            <form class="clr-form clr-form-horizontal" method="post">
+                <h4 class="card-title">Personal Details</h4>
+                {% for field in ["clientGender","clientCast","clientOccupation","clientEducation","clientAge","clientHeight","clientComplexion"] %}
+                <div class="clr-form-control">
+                    <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
+                    <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                            <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                                  />
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <br><br>
+                <h4 class="card-title">Sibling Details</h4>
+                {% for field in ["siblingGender","siblingOccupation","siblingSpouseCast","siblingSpouseOccupation"] %}
+                <div class="clr-form-control">
+                    <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
+                    <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                            <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                                 />
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <br><br>
+                <h4 class="card-title">Parents Details</h4>
+                {% for field in ["fathersOccupation","mothersOccupation","mothersCast","otherRelations"] %}
+                <div class="clr-form-control">
+                    <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
+                    <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                            <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                                 />
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <br><br>
+                <h4 class="card-title">Lifestyle Details</h4>
+                {% for field in ["smoking", "prayers", "religiousSect"] %}
+                <div class="clr-form-control">
+                    <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
+                    <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                            <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                                 />
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <br><br>
+                <h4 class="card-title">Residence Details</h4>
+                {% for field in ["presentAddress", "size", "oldAddress"] %}
+                <div class="clr-form-control">
+                    <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
+                    <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                            <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                                 />
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <br><br>
+                <h4 class="card-title">Spouse Preference Details</h4>
+                {% for field in ["preferenceOccupation","preferenceEducation","preferenceAge","preferenceHeight","preferenceComplexion"] %}
+                <div class="clr-form-control">
+                    <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
+                    <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                            <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                                 />
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <br><br>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <!-- &nbsp;&nbsp;<a href="{{ url_for('blog.viewProfile', username=username) }}"
+                        class="btn btn-sm btn-link">Discard</a> -->
+                </div>
+            </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,97 +1,421 @@
-from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
-)
+from flask import Blueprint, flash, g, redirect, render_template, request, url_for
 from werkzeug.exceptions import abort
-
 from flaskr.auth import login_required
 from flaskr.db import get_db
+import sqlite3
 
-bp = Blueprint('blog', __name__)
+bp = Blueprint("blog", __name__)
 
-@bp.route('/')
+
+@bp.route("/")
 @login_required
 def index():
     db = get_db()
-    posts = db.execute(
-        'SELECT p.id, title, body, created, author_id, username'
-        ' FROM post p JOIN user u ON p.author_id = u.id'
-        ' ORDER BY created DESC'
-    ).fetchall()
-    return render_template('blog/index.html', posts=posts)
+    profiles = get_profiles()
+    return render_template("blog/index.html", profiles=profiles)
 
-@bp.route('/create', methods=('GET', 'POST'))
+
+@bp.route("/create", methods=("GET", "POST"))
 @login_required
 def create():
-    if request.method == 'POST':
-        title = request.form['title']
-        body = request.form['body']
+    if request.method == "POST":
+        title = request.form["title"]
+        body = request.form["body"]
         error = None
 
         if not title:
-            error = 'Title is required.'
+            error = "Title is required."
 
         if error is not None:
             flash(error)
         else:
             db = get_db()
             db.execute(
-                'INSERT INTO post (title, body, author_id)'
-                ' VALUES (?, ?, ?)',
-                (title, body, g.user['id'])
+                "INSERT INTO post (title, body, author_id)" " VALUES (?, ?, ?)",
+                (title, body, g.user["id"]),
             )
             db.commit()
-            return redirect(url_for('blog.index'))
+            return redirect(url_for("blog.index"))
 
-    return render_template('blog/create.html')
+    return render_template("blog/create.html")
+
 
 def get_post(id, check_author=True):
-    post = get_db().execute(
-        'SELECT p.id, title, body, created, author_id, username'
-        ' FROM post p JOIN user u ON p.author_id = u.id'
-        ' WHERE p.id = ?',
-        (id,)
-    ).fetchone()
+    post = (
+        get_db()
+        .execute(
+            "SELECT p.id, title, body, created, author_id, username"
+            " FROM post p JOIN user u ON p.author_id = u.id"
+            " WHERE p.id = ?",
+            (id,),
+        )
+        .fetchone()
+    )
 
     if post is None:
         abort(404, f"Post id {id} doesn't exist.")
 
-    if check_author and post['author_id'] != g.user['id']:
+    if check_author and post["author_id"] != g.user["id"]:
         abort(403)
 
     return post
 
-@bp.route('/<int:id>/update', methods=('GET', 'POST'))
+
+@bp.route("/<int:id>/update", methods=("GET", "POST"))
 @login_required
 def update(id):
     post = get_post(id)
 
-    if request.method == 'POST':
-        title = request.form['title']
-        body = request.form['body']
+    if request.method == "POST":
+        title = request.form["title"]
+        body = request.form["body"]
         error = None
 
         if not title:
-            error = 'Title is required.'
+            error = "Title is required."
 
         if error is not None:
             flash(error)
         else:
             db = get_db()
             db.execute(
-                'UPDATE post SET title = ?, body = ?'
-                ' WHERE id = ?',
-                (title, body, id)
+                "UPDATE post SET title = ?, body = ?" " WHERE id = ?", (title, body, id)
             )
             db.commit()
-            return redirect(url_for('blog.index'))
+            return redirect(url_for("blog.index"))
 
-    return render_template('blog/update.html', post=post)
+    return render_template("blog/update.html", post=post)
 
-@bp.route('/<int:id>/delete', methods=('POST',))
+
+@bp.route("/<int:id>/delete", methods=("POST",))
 @login_required
 def delete(id):
     get_post(id)
     db = get_db()
-    db.execute('DELETE FROM post WHERE id = ?', (id,))
+    db.execute("DELETE FROM post WHERE id = ?", (id,))
     db.commit()
-    return redirect(url_for('blog.index'))
+    return redirect(url_for("blog.index"))
+
+
+@bp.route("/<username>/profile/view", methods=("GET",))
+@login_required
+def viewProfile(username):
+    profile = get_values(username, "client")
+    sibling = get_values(username, "sibling")
+    parents = get_values(username, "parents")
+    preference = get_values(username, "preference")
+    lifestyle = get_values(username, "lifestyle")
+    residence = get_values(username, "residence")
+
+    return render_template(
+        "blog/viewProfile.html",
+        username=username,
+        profile=profile,
+        sibling=sibling,
+        parents=parents,
+        preference=preference,
+        lifestyle=lifestyle,
+        residence=residence,
+    )
+
+
+@bp.route("/<username>/profile/edit", methods=("GET", "POST"))
+@login_required
+def editProfile(username):
+    if g.user['username'] != username:
+        abort(403, f"Unauthorized!")
+    profile = get_values(username, "client")
+    sibling = get_values(username, "sibling")
+    parents = get_values(username, "parents")
+    preference = get_values(username, "preference")
+    lifestyle = get_values(username, "lifestyle")
+    residence = get_values(username, "residence")
+
+    if request.method == "POST":
+        db = get_db()
+        db.execute(
+            "UPDATE client SET clientGender = ?, clientCast = ?, clientOccupation = ?, clientEducation = ?, clientAge = ?, clientHeight = ?, clientComplexion = ?"
+            f"WHERE token = '{username}'",
+            (
+                request.form["clientGender"],
+                request.form["clientCast"],
+                request.form["clientOccupation"],
+                request.form["clientEducation"],
+                int(request.form["clientAge"]),
+                float(request.form["clientHeight"]),
+                request.form["clientComplexion"],
+            ),
+        )
+        db.execute(
+            "UPDATE preference SET preferenceGender = ?, preferenceOccupation = ?, preferenceEducation = ?, preferenceAge = ?, preferenceHeight = ?, preferencecomplexion = ?"
+            f"WHERE token = '{username}'",
+            (
+                "Female" if request.form["clientGender"] == "Male" else "Male",
+                request.form["preferenceOccupation"],
+                request.form["preferenceEducation"],
+                int(request.form["preferenceAge"]),
+                float(request.form["preferenceHeight"]),
+                request.form["preferenceComplexion"],
+            ),
+        )
+        db.execute(
+            "UPDATE parents SET fathersOccupation = ?, mothersOccupation = ?, mothersCast = ?, otherRelations = ?"
+            f"WHERE token = '{username}'",
+            (
+                request.form["fathersOccupation"],
+                request.form["mothersOccupation"],
+                request.form["mothersCast"],
+                request.form["otherRelations"],
+            ),
+        )
+        db.execute(
+            "UPDATE lifestyle SET smoking = ?, prayers = ?, religiousSect = ?"
+            f"WHERE token = '{username}'",
+            (
+                request.form["smoking"],
+                request.form["prayers"],
+                request.form["religiousSect"],
+            ),
+        )
+        db.execute(
+            "UPDATE residence SET presentAddress = ?, size = ?, oldAddress = ?"
+            f"WHERE token = '{username}'",
+            (
+                request.form["presentAddress"],
+                request.form["size"],
+                request.form["oldAddress"],
+            ),
+        )
+        db.execute(
+            "UPDATE sibling SET siblingGender = ?, siblingOccupation = ?, siblingSpouseCast = ?, siblingSpouseOccupation = ?"
+            f"WHERE token = '{username}'",
+            (
+                request.form["siblingGender"],
+                request.form["siblingOccupation"],
+                request.form["siblingSpouseCast"],
+                request.form["siblingSpouseOccupation"],
+            ),
+        )
+        db.commit()
+        flash("Details saved successfully")
+        return redirect(url_for("blog.viewProfile", username=username))
+
+    return render_template(
+        "blog/editProfile.html",
+        username=username,
+        profile=profile,
+        sibling=sibling,
+        parents=parents,
+        preference=preference,
+        lifestyle=lifestyle,
+        residence=residence,
+    )
+
+
+@bp.route("/<username>/profile/create", methods=("GET", "POST"))
+@login_required
+def createProfile(username):
+    if g.user['username'] != username:
+        abort(403, f"Unauthorized!")
+    profile = get_values(username, "client")
+    if profile:
+        return redirect(url_for("blog.viewProfile", username=username))
+    if request.method == "POST":
+        print(request.form.to_dict())
+        db = get_db()
+        db.execute(
+            "INSERT INTO client (clientGender, token, clientCast, clientOccupation, clientEducation, clientAge, clientHeight, clientComplexion)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                request.form["clientGender"],
+                username,
+                request.form["clientCast"],
+                request.form["clientOccupation"],
+                request.form["clientEducation"],
+                int(request.form["clientAge"]),
+                float(request.form["clientHeight"]),
+                request.form["clientComplexion"],
+            ),
+        )
+        db.execute(
+            "INSERT INTO preference (preferenceGender, token, preferenceOccupation, preferenceEducation, preferenceAge, preferenceHeight, preferencecomplexion)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (
+                "Female" if request.form["clientGender"] == "Male" else "Male",
+                username,
+                request.form["preferenceOccupation"],
+                request.form["preferenceEducation"],
+                int(request.form["preferenceAge"]),
+                float(request.form["preferenceHeight"]),
+                request.form["preferenceComplexion"],
+            ),
+        )
+        db.execute(
+            "INSERT INTO parents (token, fathersOccupation, mothersOccupation, mothersCast, otherRelations)"
+            " VALUES (?, ?, ?, ?, ?)",
+            (
+                username,
+                request.form["fathersOccupation"],
+                request.form["mothersOccupation"],
+                request.form["mothersCast"],
+                request.form["otherRelations"],
+            ),
+        )
+        db.execute(
+            "INSERT INTO lifestyle (token, smoking, prayers, religiousSect)"
+            " VALUES (?, ?, ?, ?)",
+            (
+                username,
+                request.form["smoking"],
+                request.form["prayers"],
+                request.form["religiousSect"],
+            ),
+        )
+        db.execute(
+            "INSERT INTO residence (token, presentAddress, size, oldAddress)"
+            " VALUES (?, ?, ?, ?)",
+            (
+                username,
+                request.form["presentAddress"],
+                request.form["size"],
+                request.form["oldAddress"],
+            ),
+        )
+        db.execute(
+            "INSERT INTO sibling (token, siblingGender, siblingOccupation, siblingSpouseCast, siblingSpouseOccupation)"
+            " VALUES (?, ?, ?, ?, ?)",
+            (
+                username,
+                request.form["siblingGender"],
+                request.form["siblingOccupation"],
+                request.form["siblingSpouseCast"],
+                request.form["siblingSpouseOccupation"],
+            ),
+        )
+        db.commit()
+        flash("Details saved successfully")
+        return redirect(url_for("blog.viewProfile", username=username))
+        # title = request.form['title']
+        # body = request.form['body']
+        # error = None
+
+        # if not title:
+        #     error = 'Title is required.'
+
+        # if error is not None:
+        #     flash(error)
+        # else:
+        #     db = get_db()
+        #     db.execute(
+        #         'UPDATE post SET title = ?, body = ?'
+        #         ' WHERE id = ?',
+        #         (title, body, id)
+        #     )
+        #     db.commit()
+        #     return redirect(url_for('blog.index'))
+
+    return render_template("blog/createProfile.html", username=username)
+
+
+@bp.route("/<username>/profile/delete", methods=("GET",))
+@login_required
+def deleteProfile(username):
+    if g.user['username'] != username:
+        abort(403, f"Unauthorized!")
+    profile = get_values(username, "client")
+    if not profile is None:
+        db = get_db()
+        db.execute(
+            f"DELETE FROM client WHERE token = '{username}'",
+        )
+        db.execute(
+            f"DELETE FROM lifestyle WHERE token = '{username}'",
+        )
+        db.execute(
+            f"DELETE FROM parents WHERE token = '{username}'",
+        )
+        db.execute(
+            f"DELETE FROM preference WHERE token = '{username}'",
+        )
+        db.execute(
+            f"DELETE FROM residence WHERE token = '{username}'",
+        )
+        db.execute(
+            f"DELETE FROM sibling WHERE token = '{username}'",
+        )
+        db.commit()
+        flash("Deleted successfully")
+    return redirect(url_for("blog.index"))
+
+
+@bp.route("/<username>/messages", methods=("GET", "POST"))
+@login_required
+def messages(username):
+    # post = get_post(username)
+
+    return render_template("blog/messages.html", username=username)
+
+
+@bp.route("/<username>/account", methods=("GET", "POST"))
+@login_required
+def account(username):
+    # post = get_post(username)
+
+    return render_template("blog/account.html", username=username)
+
+
+def get_values(username, table_name, check_author=True) -> sqlite3.Row:
+    profile = (
+        get_db()
+        .execute(
+            "SELECT c.*" f" FROM {table_name} c " f" WHERE c.token = '{username}'",
+        )
+        .fetchone()
+    )
+
+    # if profile:
+    #     profile = (
+    #         get_db()
+    #         .execute(
+    #             f"""
+    #             SELECT c.*,
+    #             s.sex AS sibling_sex,
+    #             s.occupation AS sibling_occupation,
+    #             s.spouseCast AS sibling_spouse_cast,
+    #             p.fathersOccupation AS fathers_occupation,
+    #             p.mothersOccupation AS mothers_occupation,
+    #             p.mothersCast AS mothers_cast,
+    #             l.smoking AS smoking_habit,
+    #             l.prayers AS prayer_habit,
+    #             l.religiousSect AS religious_sect,
+    #             r.presentAddress AS present_address,
+    #             r.oldAddress AS old_address,
+    #             cp.clientCast,
+    #             cp.occupation,
+    #             cp.education,
+    #             cp.age,
+    #             cp.height,
+    #             cp.complexion
+    #             FROM client c
+    #             LEFT JOIN sibling s ON c.preferenceToken = s.relatedToken
+    #             LEFT JOIN parents p ON c.preferenceToken = p.relatedToken
+    #             LEFT JOIN lifestyle l ON c.preferenceToken = l.relatedToken
+    #             LEFT JOIN residence r ON c.preferenceToken = r.relatedToken
+    #             LEFT JOIN client cp ON c.preferenceToken = cp.token
+    #             WHERE c.token = {username}
+    #         """
+    #         )
+    #         .fetchone()
+    #     )
+
+    return profile
+
+
+def get_profiles(check_author=True) -> sqlite3.Row:
+    db = get_db()
+    profiles = db.execute(
+        "SELECT c.*, r.presentAddress AS present_address"
+        " FROM client c JOIN residence r ON c.token = r.token"
+        " ORDER BY id DESC"
+    ).fetchall()
+    return profiles
