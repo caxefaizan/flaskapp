@@ -2,7 +2,9 @@ import os, json
 
 from flask import Flask
 from flask_socketio import SocketIO
-from flask_socketio import send, emit
+from flask_socketio import emit
+from flaskr.db import get_db
+from datetime import datetime
 
 
 def create_app(test_config=None):
@@ -13,6 +15,7 @@ def create_app(test_config=None):
         DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
     )
     # app.config.from_pyfile("config.py")
+    
     socketio = SocketIO(app)
 
     if test_config is None:
@@ -28,11 +31,54 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    def writeMessageAndSendResponse(username, recipientId, message):
+        recipient = (
+            get_db()
+            .execute(
+                "SELECT u.*" f" FROM user u " f" WHERE u.id = '{recipientId}'",
+            )
+            .fetchone()
+        )
+        sender = (
+            get_db()
+            .execute(
+                "SELECT u.*" f" FROM user u " f" WHERE u.username = '{username}'",
+            )
+            .fetchone()
+        )
+        db = get_db()
+        db.execute(
+            "INSERT INTO messages (senderId, recipientId, messageText, timeStamp)"
+            " VALUES (?, ?, ?, ?)",
+            (
+                sender['id'],
+                recipient['id'],
+                message,
+                datetime.now(),
+            ),
+        )
+        db.commit()
+        print("Message saved successfully")
 
-    @socketio.on("my event")
-    def handle_my_custom_event(val):
-        print("received json: " + str(val))
-        emit("server", json.dumps({"response": "caxe"}))
+        return blog.get_messages(sender['id'], recipientId)
+    
+    @socketio.on("clientConnect")
+    def handle_my_custom_event(json):
+        print('client: ' + str(json))
+
+    @socketio.on("submitMessage")
+    def handle_my_custom_event(username, rId, message):
+        messages = writeMessageAndSendResponse(username, rId, message)
+
+        emit(
+            "serverMessagesUpdate", 
+            json.dumps(
+                {
+                    "action": "refresh"
+                }
+            ),
+            broadcast=True
+        )
 
     from . import db
 

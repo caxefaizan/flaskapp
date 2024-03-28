@@ -90,18 +90,24 @@
   crossorigin="anonymous"></script>
 <script type="text/javascript" charset="utf-8">
   var socket = io();
-  socket.on('connect', function () {
-    socket.emit('my event', { data: 'I\'m connected!' });
+
+  document.getElementById('sendMessageForm').addEventListener('submit', function (event) {
+    event.preventDefault(); // Prevent form submission
+    var message = document.getElementById('messageBody').value;
+    var rId = parseInt(new URLSearchParams(window.location.search).get("recipientId"));
+    var username = window.location.href.split('/')[3];
+    socket.emit('submitMessage', username, rId, message); // Emit a WebSocket event
+    document.getElementById('messageBody').value = ''; // Clear input field
   });
 
-  socket.on("server", function (msg) {
+  socket.on('connect', function () {
+    socket.emit('clientConnect', { data: 'I\'m connected!' });
+  });
+
+  socket.on("serverMessagesUpdate", function (msg) {
     let myvar = JSON.parse(msg);
     console.log(myvar);
-    //Check if entire data is sent by server//
-    if (myvar.response == "caxe") {
-      console.log(myvar.response);
-    }
-
+    location.reload();
   });
 </script>
 {% endif %}

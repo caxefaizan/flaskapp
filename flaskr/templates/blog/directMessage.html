@@ -13,25 +13,25 @@
     </div>
     <ul class="list-group">
       {% for message in messages|reverse %}
-      <li class="list-group-item">
+      <li id="message-li-{{loop.revindex}}" class="list-group-item">
         {% if message['senderId'] == g.user['id'] %}
-        <span class="label label-info" >{{ g.user['username']}}: </span>
+        <span id="message-span-{{loop.revindex}}" class="label label-info" >{{ g.user['username']}}: </span>
         {% else %}
-        <span class="label label-success" >{{ receiver['username'] }}: </span>
+        <span id="message-span-{{loop.revindex}}" class="label label-success" >{{ receiver['username'] }}: </span>
         {% endif %}{{message['messageText']}}</li>
       {% endfor %}
     </ul>
     <div class="card-footer">
-      <form class="clr-form clr-form-horizontal" method="post">
+      <form id="sendMessageForm" class="clr-form clr-form-horizontal" method="post">
         <div class="clr-form-control">
           <div class="clr-control-container">
             <div class="clr-textarea-wrapper">
-              <textarea name ="messageBody" id="messageBody" class="clr-textarea"></textarea>
+              <textarea required name ="messageBody" id="messageBody" class="clr-textarea"></textarea>
             </div>
           </div>
         </div>
         <br>
-        <button type="submit" class="btn btn-primary">Send</button>
+        <button id="sendMessageButton" type="submit" class="btn btn-primary">Send</button>
       </form>
     </div>
   </div>

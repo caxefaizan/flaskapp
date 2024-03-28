@@ -305,7 +305,7 @@ def directMessage(username):
         )
         db.commit()
 
-    messages = get_messages(username, recipientId)
+    messages = get_messages(g.user['id'], recipientId)
 
     return render_template(
         "blog/directMessage.html",
@@ -323,11 +323,11 @@ def account(username):
     return render_template("blog/account.html", username=username)
 
 
-def get_messages(username, receiver, check_author=True) -> sqlite3.Row:
+def get_messages(userId, receiver, check_author=True) -> sqlite3.Row:
     messages = (
         get_db()
         .execute(
-            f"SELECT m.* FROM messages m WHERE (m.senderId = '{g.user['id']}' OR m.senderId = '{receiver}') AND (m.recipientId = '{receiver}' OR m.recipientId = '{g.user['id']}')"
+            f"SELECT m.* FROM messages m WHERE (m.senderId = '{userId}' OR m.senderId = '{receiver}') AND (m.recipientId = '{receiver}' OR m.recipientId = '{userId}')"
             " ORDER BY m.timeStamp DESC LIMIT 5"
         )
         .fetchmany(5)
