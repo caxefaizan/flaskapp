@@ -1,5 +1,5 @@
 import functools
-
+from datetime import datetime
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
@@ -56,6 +56,13 @@ def login():
         if error is None:
             session.clear()
             session['user_id'] = user['id']
+            db.execute(
+                "UPDATE user SET lastActivity = ?"
+                f"WHERE username = '{username}'",
+                (
+                    datetime.now(),
+                ),
+            )
             return redirect(url_for('blog.index', username=user['username']))
 
         flash(error)

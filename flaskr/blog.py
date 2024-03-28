@@ -3,6 +3,8 @@ from werkzeug.exceptions import abort
 from flaskr.auth import login_required
 from flaskr.db import get_db
 import sqlite3
+from datetime import datetime
+import itertools
 
 bp = Blueprint("blog", __name__)
 
@@ -10,91 +12,8 @@ bp = Blueprint("blog", __name__)
 @bp.route("/")
 @login_required
 def index():
-    db = get_db()
     profiles = get_profiles()
     return render_template("blog/index.html", profiles=profiles)
-
-
-@bp.route("/create", methods=("GET", "POST"))
-@login_required
-def create():
-    if request.method == "POST":
-        title = request.form["title"]
-        body = request.form["body"]
-        error = None
-
-        if not title:
-            error = "Title is required."
-
-        if error is not None:
-            flash(error)
-        else:
-            db = get_db()
-            db.execute(
-                "INSERT INTO post (title, body, author_id)" " VALUES (?, ?, ?)",
-                (title, body, g.user["id"]),
-            )
-            db.commit()
-            return redirect(url_for("blog.index"))
-
-    return render_template("blog/create.html")
-
-
-def get_post(id, check_author=True):
-    post = (
-        get_db()
-        .execute(
-            "SELECT p.id, title, body, created, author_id, username"
-            " FROM post p JOIN user u ON p.author_id = u.id"
-            " WHERE p.id = ?",
-            (id,),
-        )
-        .fetchone()
-    )
-
-    if post is None:
-        abort(404, f"Post id {id} doesn't exist.")
-
-    if check_author and post["author_id"] != g.user["id"]:
-        abort(403)
-
-    return post
-
-
-@bp.route("/<int:id>/update", methods=("GET", "POST"))
-@login_required
-def update(id):
-    post = get_post(id)
-
-    if request.method == "POST":
-        title = request.form["title"]
-        body = request.form["body"]
-        error = None
-
-        if not title:
-            error = "Title is required."
-
-        if error is not None:
-            flash(error)
-        else:
-            db = get_db()
-            db.execute(
-                "UPDATE post SET title = ?, body = ?" " WHERE id = ?", (title, body, id)
-            )
-            db.commit()
-            return redirect(url_for("blog.index"))
-
-    return render_template("blog/update.html", post=post)
-
-
-@bp.route("/<int:id>/delete", methods=("POST",))
-@login_required
-def delete(id):
-    get_post(id)
-    db = get_db()
-    db.execute("DELETE FROM post WHERE id = ?", (id,))
-    db.commit()
-    return redirect(url_for("blog.index"))
 
 
 @bp.route("/<username>/profile/view", methods=("GET",))
@@ -122,7 +41,7 @@ def viewProfile(username):
 @bp.route("/<username>/profile/edit", methods=("GET", "POST"))
 @login_required
 def editProfile(username):
-    if g.user['username'] != username:
+    if g.user["username"] != username:
         abort(403, f"Unauthorized!")
     profile = get_values(username, "client")
     sibling = get_values(username, "sibling")
@@ -215,7 +134,7 @@ def editProfile(username):
 @bp.route("/<username>/profile/create", methods=("GET", "POST"))
 @login_required
 def createProfile(username):
-    if g.user['username'] != username:
+    if g.user["username"] != username:
         abort(403, f"Unauthorized!")
     profile = get_values(username, "client")
     if profile:
@@ -317,10 +236,10 @@ def createProfile(username):
     return render_template("blog/createProfile.html", username=username)
 
 
-@bp.route("/<username>/profile/delete", methods=("GET",))
+@bp.route("/<username>/profile/delete", methods=("POST",))
 @login_required
 def deleteProfile(username):
-    if g.user['username'] != username:
+    if g.user["username"] != username:
         abort(403, f"Unauthorized!")
     profile = get_values(username, "client")
     if not profile is None:
@@ -351,9 +270,49 @@ def deleteProfile(username):
 @bp.route("/<username>/messages", methods=("GET", "POST"))
 @login_required
 def messages(username):
-    # post = get_post(username)
+    interactions = get_all_messages(username)
 
-    return render_template("blog/messages.html", username=username)
+    print(interactions)
+
+    return render_template(
+        "blog/messages.html", username=username, interactions=interactions
+    )
+
+
+@bp.route("/<username>/message", methods=("GET", "POST"))
+@login_required
+def directMessage(username):
+    recipientId = request.args.get("recipientId")
+    recipient = (
+        get_db()
+        .execute(
+            "SELECT u.*" f" FROM user u " f" WHERE u.id = '{recipientId}'",
+        )
+        .fetchone()
+    )
+    if request.method == "POST":
+        message = request.form["messageBody"]
+        db = get_db()
+        db.execute(
+            "INSERT INTO messages (senderId, recipientId, messageText, timeStamp)"
+            " VALUES (?, ?, ?, ?)",
+            (
+                g.user["id"],
+                recipientId,
+                message,
+                datetime.now(),
+            ),
+        )
+        db.commit()
+
+    messages = get_messages(username, recipientId)
+
+    return render_template(
+        "blog/directMessage.html",
+        username=username,
+        messages=messages,
+        receiver=recipient,
+    )
 
 
 @bp.route("/<username>/account", methods=("GET", "POST"))
@@ -362,6 +321,38 @@ def account(username):
     # post = get_post(username)
 
     return render_template("blog/account.html", username=username)
+
+
+def get_messages(username, receiver, check_author=True) -> sqlite3.Row:
+    messages = (
+        get_db()
+        .execute(
+            f"SELECT m.* FROM messages m WHERE (m.senderId = '{g.user['id']}' OR m.senderId = '{receiver}') AND (m.recipientId = '{receiver}' OR m.recipientId = '{g.user['id']}')"
+            " ORDER BY m.timeStamp DESC LIMIT 5"
+        )
+        .fetchmany(5)
+    )
+    return messages
+
+
+def get_all_messages(username, check_author=True) -> sqlite3.Row:
+    db = get_db()
+    receivedMessagesFrom = db.execute(
+        f"SELECT DISTINCT senderId FROM messages WHERE recipientId = '{g.user['id']}'"
+        " ORDER BY timeStamp DESC LIMIT 5"
+    ).fetchall()
+    sentMessagesTo = db.execute(
+        f"SELECT DISTINCT recipientId FROM messages WHERE senderId = '{g.user['id']}'"
+    ).fetchall()
+    senders = list(itertools.chain.from_iterable(receivedMessagesFrom))
+    receivers = list(itertools.chain.from_iterable(sentMessagesTo))
+    interactions = list(set(senders) | set(receivers))
+    interactions = ",".join(map(str, interactions))
+    interactions = db.execute(
+        f"SELECT u.id, u.username, u.lastActivity FROM user u WHERE id in ({interactions})"
+    ).fetchall()
+    interactions = [row for row in interactions]
+    return interactions
 
 
 def get_values(username, table_name, check_author=True) -> sqlite3.Row:
@@ -414,8 +405,8 @@ def get_values(username, table_name, check_author=True) -> sqlite3.Row:
 def get_profiles(check_author=True) -> sqlite3.Row:
     db = get_db()
     profiles = db.execute(
-        "SELECT c.*, r.presentAddress AS present_address"
-        " FROM client c JOIN residence r ON c.token = r.token"
-        " ORDER BY id DESC"
+        "SELECT c.*, r.presentAddress AS present_address, u.lastActivity as lastActivity, u.id"
+        " FROM client c JOIN residence r ON c.token = r.token JOIN user u ON u.username = c.token"
+        " ORDER BY lastActivity DESC"
     ).fetchall()
     return profiles

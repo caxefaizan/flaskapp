@@ -5,7 +5,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='global.min.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='clr-ui.min.css') }}" />
 
-
 <body cds-theme="light">
   <header class="header header-6">
     <div class="branding">
@@ -16,20 +15,20 @@
     </div>
     <div class="header-nav">
       {% if g.user %}
-      
+
       <a href="{{ url_for('auth.logout') }}" class="nav-link nav-icon">
         <cds-icon shape="cloud">Logout</cds-icon>
       </a>
       {% else %}
-        {% if request.path == url_for("auth.login") %}
-        <a href="{{ url_for('auth.register') }}" class="nav-link nav-icon">
-          <cds-icon shape="cloud">Register</cds-icon>&nbsp&nbsp
-        </a>
-        {% elif request.path == url_for("auth.register") %}
-        <a href="{{ url_for('auth.login') }}" class="active nav-link nav-icon">
-          <cds-icon shape="folder">Login</cds-icon>
-        </a>
-        {% endif %}
+      {% if request.path == url_for("auth.login") %}
+      <a href="{{ url_for('auth.register') }}" class="nav-link nav-icon">
+        <cds-icon shape="cloud">Register</cds-icon>&nbsp&nbsp
+      </a>
+      {% elif request.path == url_for("auth.register") %}
+      <a href="{{ url_for('auth.login') }}" class="active nav-link nav-icon">
+        <cds-icon shape="folder">Login</cds-icon>
+      </a>
+      {% endif %}
       {% endif %}
     </div>
   </header>
@@ -62,5 +61,49 @@
     </div>
   </div>
 </body>
+<script>
+  var modal = document.getElementById("myModal");
+  var btn = document.getElementById("deleteModalButton");
+  var cancelbtn = document.getElementById("cancelModalButton");
+
+  // When the user clicks the button, open the modal 
+  btn.onclick = function () {
+    modal.style.display = "block";
+  }
+
+  // When the user clicks on <span> (x), close the modal
+  cancelbtn.onclick = function () {
+    modal.style.display = "none";
+  }
+
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = function (event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
+</script>
+
+{% if request.path == url_for("blog.directMessage", username=g.user['username']) %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+  integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+  crossorigin="anonymous"></script>
+<script type="text/javascript" charset="utf-8">
+  var socket = io();
+  socket.on('connect', function () {
+    socket.emit('my event', { data: 'I\'m connected!' });
+  });
+
+  socket.on("server", function (msg) {
+    let myvar = JSON.parse(msg);
+    console.log(myvar);
+    //Check if entire data is sent by server//
+    if (myvar.response == "caxe") {
+      console.log(myvar.response);
+    }
+
+  });
+</script>
+{% endif %}
 
 </html>

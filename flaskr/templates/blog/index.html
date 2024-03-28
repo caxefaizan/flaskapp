@@ -17,14 +17,22 @@
       <h3 class="card-header">{{ profile['clientOccupation'] }}, {{ profile['clientGender'][0] }} | {{ profile['clientAge'] }}</h3>
       <div class="card-block">
         <h4 class="card-title">{{ profile['clientCast'] }} | {{ profile['present_address'] }}</h4>
-        <div class="card-text">Education: {{ profile['clientEducation'] }}</div>
+        <div class="card-text">Education: {{ profile['clientEducation'] }} &nbsp;&nbsp;&nbsp;Last Online: {{ profile['lastActivity'] }}</div><span></span>
       </div>
       <div class="card-footer">
         <a href="{{ url_for('blog.viewProfile', username=profile['token']) }}" class="btn btn-sm btn-link">View</a>
+        {% if g.user['username'] != profile['token'] %}
+        <a href="{{ url_for('blog.directMessage', username=g.user['username']) }}?recipientId={{profile['id']}}" class="btn btn-sm btn-link">Message</a>
+        {% else %}
+        <a href="{{ url_for('blog.editProfile', username=g.user['username']) }}" class="btn btn-sm btn-link">Edit</a>
+        {%  endif %}
       </div>
     </div>
   </div>
 </div>
 <!-- {% endif %} -->
 {% endfor %}
+{% if profiles | length ==0 %}
+<h4 class="card-title">No Profiles found.</h4>
+{% endif %}
 {% endblock %}

@@ -1,6 +1,8 @@
-import os
+import os, json
 
 from flask import Flask
+from flask_socketio import SocketIO
+from flask_socketio import send, emit
 
 
 def create_app(test_config=None):
@@ -11,6 +13,7 @@ def create_app(test_config=None):
         DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
     )
     # app.config.from_pyfile("config.py")
+    socketio = SocketIO(app)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -25,10 +28,11 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    # a simple page that says hello
-    @app.route("/hello")
-    def hello():
-        return "Hello, World!"
+
+    @socketio.on("my event")
+    def handle_my_custom_event(val):
+        print("received json: " + str(val))
+        emit("server", json.dumps({"response": "caxe"}))
 
     from . import db
 

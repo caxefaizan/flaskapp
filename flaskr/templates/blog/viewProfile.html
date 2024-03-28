@@ -1,45 +1,42 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<script>
-    function confirmAction() {
-        // Display a confirmation dialog
-        var confirmation = confirm("Are you sure you want to proceed?");
-        // If user confirms, submit the form
-        if (confirmation) {
-            document.getElementById('myForm').submit();
-        }
-    }
-</script>
 
 <div class="card">
     <!-- <div class="card-img">
         <img src="..." />
     </div> -->
-    
+
     <ul class="list-group">
         <div class="card-header">
             {% if not profile %}
+            <h4 class="card-title">Details yet to be filled</h4>
+            {% if g.user['username'] == username %}
             <a href="{{ url_for('blog.createProfile', username=username) }}" class="btn btn-sm btn-link">Create</a>
+            {% else %}
+            <a href="{{ url_for('blog.index') }}" class="btn btn-sm btn-link">Home</a>
+            {% endif %}
             {% else %}
             {% if g.user['username'] == profile['token'] %}
             <a href="{{ url_for('blog.editProfile', username=username) }}" class="btn btn-sm btn-link">Edit</a>
-            <a href="{{ url_for('blog.deleteProfile', username=username) }}" class="btn btn-sm btn-link"><button type="submit" class="btn btn-primary" onclick="confirmAction(); return false;">Delete</button></a>
-            <!-- <form action="" method="post">
-                <button class="btn btn-sm btn-link" name="deleteProfile" value="delete">Delete</button>
-            </form> -->
+            <button id="deleteModalButton" class="btn btn-sm btn-link">Delete</button>
+            {% else %}
+            <a href="{{ url_for('blog.editProfile', username=username) }}" class="btn btn-sm btn-link">Message</a>
             {% endif %}
             {% endif %}
         </div>
         {% if profile %}
         <form class="clr-form clr-form-horizontal">
             <h4 class="card-title">Personal Details</h4>
-            {% for field in ["clientGender","clientCast","clientOccupation","clientEducation","clientAge","clientHeight","clientComplexion"] %}
+            {% for field in
+            ["clientGender","clientCast","clientOccupation","clientEducation","clientAge","clientHeight","clientComplexion"]
+            %}
             <div class="clr-form-control">
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required value="{{ profile[field] }}" readonly/>
+                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                            value="{{ profile[field] }}" readonly />
                     </div>
                 </div>
             </div>
@@ -51,7 +48,8 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required value="{{ sibling[field] }}" readonly/>
+                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                            value="{{ sibling[field] }}" readonly />
                     </div>
                 </div>
             </div>
@@ -63,7 +61,8 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required value="{{ parents[field] }}" readonly/>
+                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                            value="{{ parents[field] }}" readonly />
                     </div>
                 </div>
             </div>
@@ -75,7 +74,8 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required value="{{ lifestyle[field] }}" readonly/>
+                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                            value="{{ lifestyle[field] }}" readonly />
                     </div>
                 </div>
             </div>
@@ -87,28 +87,50 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required value="{{ residence[field] }}" readonly/>
+                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                            value="{{ residence[field] }}" readonly />
                     </div>
                 </div>
             </div>
             {% endfor %}
             <br><br>
             <h4 class="card-title">Spouse Preference Details</h4>
-            {% for field in ["preferenceOccupation","preferenceEducation","preferenceAge","preferenceHeight","preferenceComplexion"] %}
+            {% for field in
+            ["preferenceOccupation","preferenceEducation","preferenceAge","preferenceHeight","preferenceComplexion"] %}
             <div class="clr-form-control">
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required value="{{ preference[field] }}" readonly/>
+                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
+                            value="{{ preference[field] }}" readonly />
                     </div>
                 </div>
             </div>
             {% endfor %}
         </form>
-        {% else %}
-        <h4 class="card-title">Details yet to be filled. Please create.</h4>
         {% endif %}
-        <br><br>
     </ul>
+</div>
+<br>
+<div style="display: none;" id="myModal" class="modal">
+    <div class="modal-dialog" role="dialog" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button aria-label="Close" class="close" type="button">
+                    <cds-icon shape="close"></cds-icon>
+                </button>
+                <h3 class="modal-title">Caution</h3>
+            </div>
+            <div class="modal-body">
+                <p>This will delete your profile</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelModalButton" class="btn btn-outline" type="button">Cancel</button>
+                <form action="{{url_for('blog.deleteProfile', username=username)}}" method="post">
+                    <button type="submit" class="btn btn-primary" name="deleteProfile" value="delete">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
