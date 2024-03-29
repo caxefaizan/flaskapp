@@ -89,6 +89,14 @@
   integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
   crossorigin="anonymous"></script>
 <script type="text/javascript" charset="utf-8">
+  {% if size | int == 1 %}
+  function scrollToBottom() {
+      var list = document.querySelector('.scrollable-list');
+      list.scrollTop = list.scrollHeight;
+  }
+  // Call the function when the page is loaded
+  window.onload = scrollToBottom;
+  {% endif %}
   var socket = io();
 
   document.getElementById('sendMessageForm').addEventListener('submit', function (event) {
@@ -96,7 +104,7 @@
     var message = document.getElementById('messageBody').value;
     var rId = parseInt(new URLSearchParams(window.location.search).get("recipientId"));
     var username = window.location.href.split('/')[3];
-    socket.emit('submitMessage', username, rId, message); // Emit a WebSocket event
+    socket.emit('submitMessage', username, rId, message, {{ size }}); // Emit a WebSocket event
     document.getElementById('messageBody').value = ''; // Clear input field
   });
 

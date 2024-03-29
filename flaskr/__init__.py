@@ -31,7 +31,7 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    def writeMessageAndSendResponse(username, recipientId, message):
+    def writeMessageAndSendResponse(username, recipientId, message, size):
         recipient = (
             get_db()
             .execute(
@@ -60,15 +60,15 @@ def create_app(test_config=None):
         db.commit()
         print("Message saved successfully")
 
-        return blog.get_messages(sender['id'], recipientId)
+        return blog.get_messages(sender['id'], recipientId, int(size))
     
     @socketio.on("clientConnect")
     def handle_my_custom_event(json):
         print('client: ' + str(json))
 
     @socketio.on("submitMessage")
-    def handle_my_custom_event(username, rId, message):
-        messages = writeMessageAndSendResponse(username, rId, message)
+    def handle_my_custom_event(username, rId, message, size):
+        messages = writeMessageAndSendResponse(username, rId, message, size)
 
         emit(
             "serverMessagesUpdate", 

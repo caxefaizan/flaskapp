@@ -2,37 +2,39 @@
 
 {% block content %}
 <div class="card">
-    <!-- <div class="card-img">
+  <!-- <div class="card-img">
       <img src="..." />
     </div> -->
-    <div class="card-block">
-      <h4 class="card-title">{{ receiver['username'] | capitalize}}</h4>
-      <p class="card-text">
-        Last Online : {{ receiver['lastActivity'] }}
-      </p>
-    </div>
-    <ul class="list-group">
-      {% for message in messages|reverse %}
-      <li id="message-li-{{loop.revindex}}" class="list-group-item">
-        {% if message['senderId'] == g.user['id'] %}
-        <span id="message-span-{{loop.revindex}}" class="label label-info" >{{ g.user['username']}}: </span>
-        {% else %}
-        <span id="message-span-{{loop.revindex}}" class="label label-success" >{{ receiver['username'] }}: </span>
-        {% endif %}{{message['messageText']}}</li>
-      {% endfor %}
-    </ul>
-    <div class="card-footer">
-      <form id="sendMessageForm" class="clr-form clr-form-horizontal" method="post">
-        <div class="clr-form-control">
-          <div class="clr-control-container">
-            <div class="clr-textarea-wrapper">
-              <textarea required name ="messageBody" id="messageBody" class="clr-textarea"></textarea>
-            </div>
+  <div class="card-block">
+    <h4 class="card-title">{{ receiver['username'] | capitalize}}</h4>
+    <p class="card-text">
+      Last Online : {{ receiver['lastActivity'] }}
+    </p>
+  </div>
+  <ul class="scrollable-list" class="list-group">
+    <a href="{{ url_for('blog.directMessage', username=username) }}?recipientId={{receiver['id']}}&size={{size|int + 1}}" class="btn btn-sm btn-link">Load Older{{recipientId}}</a>
+    {% for message in messages|reverse %}
+    <li id="message-li-{{loop.revindex}}" class="list-group-item">
+      {% if message['senderId'] == g.user['id'] %}
+      <span id="message-span-{{loop.revindex}}" class="label label-info">{{ g.user['username']}}: </span>
+      {% else %}
+      <span id="message-span-{{loop.revindex}}" class="label label-success">{{ receiver['username'] }}: </span>
+      {% endif %}{{message['messageText']}}
+    </li>
+    {% endfor %}
+  </ul>
+  <div class="card-footer">
+    <form id="sendMessageForm" class="clr-form clr-form-horizontal" method="post">
+      <div class="clr-form-control">
+        <div class="clr-control-container">
+          <div class="clr-textarea-wrapper">
+            <textarea required name="messageBody" id="messageBody" class="clr-textarea"></textarea>
           </div>
         </div>
-        <br>
-        <button id="sendMessageButton" type="submit" class="btn btn-primary">Send</button>
-      </form>
-    </div>
+      </div>
+      <br>
+      <button id="sendMessageButton" type="submit" class="btn btn-primary">Send</button>
+    </form>
   </div>
+</div>
 {% endblock %}

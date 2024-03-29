@@ -283,6 +283,7 @@ def messages(username):
 @login_required
 def directMessage(username):
     recipientId = request.args.get("recipientId")
+    size = request.args.get("size")
     recipient = (
         get_db()
         .execute(
@@ -305,13 +306,14 @@ def directMessage(username):
         )
         db.commit()
 
-    messages = get_messages(g.user['id'], recipientId)
+    messages = get_messages(g.user["id"], recipientId, size)
 
     return render_template(
         "blog/directMessage.html",
         username=username,
         messages=messages,
         receiver=recipient,
+        size =size
     )
 
 
@@ -323,14 +325,16 @@ def account(username):
     return render_template("blog/account.html", username=username)
 
 
-def get_messages(userId, receiver, check_author=True) -> sqlite3.Row:
+def get_messages(userId, receiver, size, check_author=True) -> sqlite3.Row:
+    messageSize = int(size) * 5
+    print(messageSize)
     messages = (
         get_db()
         .execute(
             f"SELECT m.* FROM messages m WHERE (m.senderId = '{userId}' OR m.senderId = '{receiver}') AND (m.recipientId = '{receiver}' OR m.recipientId = '{userId}')"
-            " ORDER BY m.timeStamp DESC LIMIT 5"
+            f" ORDER BY m.timeStamp DESC LIMIT {messageSize}"
         )
-        .fetchmany(5)
+        .fetchmany(messageSize)
     )
     return messages
 

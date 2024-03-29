@@ -13,7 +13,7 @@
                 <a href="{{ url_for('blog.viewProfile', username=profile['username']) }}"
                     class="btn btn-sm btn-link">View</a>
                 {% if g.user['username'] != profile['token'] %}
-                <a href="{{ url_for('blog.directMessage', username=g.user['username']) }}?recipientId={{profile['id']}}"
+                <a href="{{ url_for('blog.directMessage', username=g.user['username']) }}?recipientId={{profile['id']}}&size=1"
                     class="btn btn-sm btn-link">Message</a>
                 {% else %}
                 <a href="{{ url_for('blog.editProfile', username=g.user['username']) }}"

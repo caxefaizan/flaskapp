@@ -22,7 +22,7 @@
       <div class="card-footer">
         <a href="{{ url_for('blog.viewProfile', username=profile['token']) }}" class="btn btn-sm btn-link">View</a>
         {% if g.user['username'] != profile['token'] %}
-        <a href="{{ url_for('blog.directMessage', username=g.user['username']) }}?recipientId={{profile['id']}}" class="btn btn-sm btn-link">Message</a>
+        <a href="{{ url_for('blog.directMessage', username=g.user['username']) }}?recipientId={{profile['id']}}&size=1" class="btn btn-sm btn-link">Message</a>
         {% else %}
         <a href="{{ url_for('blog.editProfile', username=g.user['username']) }}" class="btn btn-sm btn-link">Edit</a>
         {%  endif %}
