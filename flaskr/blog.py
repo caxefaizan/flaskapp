@@ -13,7 +13,7 @@ bp = Blueprint("blog", __name__)
 @login_required
 def index():
     profiles = get_profiles()
-    return render_template("blog/index.html", profiles=profiles)
+    return render_template("blog/index.html", args=profiles)
 
 
 @bp.route("/<username>/profile/view", methods=("GET",))
@@ -140,7 +140,6 @@ def createProfile(username):
     if profile:
         return redirect(url_for("blog.viewProfile", username=username))
     if request.method == "POST":
-        print(request.form.to_dict())
         db = get_db()
         db.execute(
             "INSERT INTO client (clientGender, token, clientCast, clientOccupation, clientEducation, clientAge, clientHeight, clientComplexion)"
@@ -272,10 +271,8 @@ def deleteProfile(username):
 def messages(username):
     interactions = get_all_messages(username)
 
-    print(interactions)
-
     return render_template(
-        "blog/messages.html", username=username, interactions=interactions
+        "blog/index.html", username=username, args=interactions
     )
 
 
@@ -327,7 +324,6 @@ def account(username):
 
 def get_messages(userId, receiver, size, check_author=True) -> sqlite3.Row:
     messageSize = int(size) * 5
-    print(messageSize)
     messages = (
         get_db()
         .execute(
@@ -409,7 +405,7 @@ def get_values(username, table_name, check_author=True) -> sqlite3.Row:
 def get_profiles(check_author=True) -> sqlite3.Row:
     db = get_db()
     profiles = db.execute(
-        "SELECT c.*, r.presentAddress AS present_address, u.lastActivity as lastActivity, u.id"
+        "SELECT c.*, r.presentAddress AS present_address, u.lastActivity as lastActivity, u.id, u.username"
         " FROM client c JOIN residence r ON c.token = r.token JOIN user u ON u.username = c.token"
         " ORDER BY lastActivity DESC"
     ).fetchall()

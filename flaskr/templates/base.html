@@ -91,8 +91,8 @@
 <script type="text/javascript" charset="utf-8">
   {% if size | int == 1 %}
   function scrollToBottom() {
-      var list = document.querySelector('.scrollable-list');
-      list.scrollTop = list.scrollHeight;
+    var list = document.querySelector('.scrollable-list');
+    list.scrollTop = list.scrollHeight;
   }
   // Call the function when the page is loaded
   window.onload = scrollToBottom;
@@ -105,7 +105,7 @@
     var rId = parseInt(new URLSearchParams(window.location.search).get("recipientId"));
     var username = window.location.href.split('/')[3];
     socket.emit('submitMessage', username, rId, message, {{ size }}); // Emit a WebSocket event
-    document.getElementById('messageBody').value = ''; // Clear input field
+  document.getElementById('messageBody').value = ''; // Clear input field
   });
 
   socket.on('connect', function () {

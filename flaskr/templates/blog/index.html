@@ -1,38 +1,44 @@
 {% extends 'base.html' %}
 
-{% block header %}
-{% if g.user %}
-<a class="action" href="{{ url_for('blog.create') }}">New</a>
-{% endif %}
-{% endblock %}
-
 {% block content %}
-<br>
-<!-- &nbsp&nbsp<span>Welcome {{ g.user['username'] | capitalize}}</span> -->
-{% for profile in profiles %}
-<!-- {% if g.user['id'] != profile['token'] %} -->
+{% for arg in args %}
 <div class="clr-row">
   <div class="clr-col-lg-5 clr-col-md-8 clr-col-12">
     <div class="card">
-      <h3 class="card-header">{{ profile['clientOccupation'] }}, {{ profile['clientGender'][0] }} | {{ profile['clientAge'] }}</h3>
+      <h3 class="card-header">{% if request.path == "/" %} {{ arg['clientOccupation'] }}, {{ arg['clientGender'][0] }} | {{ arg['clientAge'] }} {% else %} {{ arg['username'] }} {% endif %}</h3>
       <div class="card-block">
-        <h4 class="card-title">{{ profile['clientCast'] }} | {{ profile['present_address'] }}</h4>
-        <div class="card-text">Education: {{ profile['clientEducation'] }} &nbsp;&nbsp;&nbsp;Last Online: {{ profile['lastActivity'] }}</div><span></span>
+        {% if request.path == "/" %}
+        <h4 class="card-title">{{ arg['clientCast'] }} | {{ arg['present_address'] }}</h4>
+        <div class="card-text">Education: {{ arg['clientEducation'] }} &nbsp;&nbsp;&nbsp;Last Online: {{
+          arg['lastActivity'] }}</div>
+        {% else %}
+        <div class="card-text">Last Online: {{ arg['lastActivity'] }}</div>
+        {% endif %}
+        
       </div>
       <div class="card-footer">
-        <a href="{{ url_for('blog.viewProfile', username=profile['token']) }}" class="btn btn-sm btn-link">View</a>
-        {% if g.user['username'] != profile['token'] %}
-        <a href="{{ url_for('blog.directMessage', username=g.user['username']) }}?recipientId={{profile['id']}}&size=1" class="btn btn-sm btn-link">Message</a>
+        <a class="btn btn-sm btn-link" 
+        href="{{ url_for('blog.viewProfile', username=arg['username']) }}"
+            >View</a>
+        {% if g.user['username'] != arg['token'] %}
+        <a href="{{ url_for('blog.directMessage', username=g.user['username']) }}?recipientId={{arg['id']}}&size=1"
+          class="btn btn-sm btn-link">Message</a>
         {% else %}
-        <a href="{{ url_for('blog.editProfile', username=g.user['username']) }}" class="btn btn-sm btn-link">Edit</a>
-        {%  endif %}
+        <a href="{{ url_for('blog.editProfile', username=g.user['username']) }}" 
+            class="btn btn-sm btn-link">Edit</a>
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
-<!-- {% endif %} -->
 {% endfor %}
-{% if profiles | length ==0 %}
-<h4 class="card-title">No Profiles found.</h4>
+{% if args | length ==0 %}
+<h4 class="card-title">
+  {% if request.path == "/" %}
+  No Profiles found.
+  {% else %}
+  No Messages found.
+  {% endif %}
+</h4>
 {% endif %}
 {% endblock %}

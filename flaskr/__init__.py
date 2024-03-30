@@ -1,11 +1,20 @@
 import os, json
 
-from flask import Flask
-from flask_socketio import SocketIO
-from flask_socketio import emit
+from flask import Flask, request
+from flask_socketio import SocketIO, emit, Namespace
 from flaskr.db import get_db
 from datetime import datetime
 
+# class MySocketNamespace(Namespace):
+#     def on_connect(self, arg):
+#         print(request.event["args"]) 
+#         print(f"Client {arg} connected!")
+
+#     def on_disconnect(self, arg):
+#         print(f"Client {arg} disconnected!")
+
+#     def on_send_message(self):
+#         emit('message_response', "message received")
 
 def create_app(test_config=None):
     # create and configure the app
@@ -62,12 +71,15 @@ def create_app(test_config=None):
 
         return blog.get_messages(sender['id'], recipientId, int(size))
     
+    # socketio.on_namespace(MySocketNamespace('/test'))
+
     @socketio.on("clientConnect")
     def handle_my_custom_event(json):
         print('client: ' + str(json))
 
     @socketio.on("submitMessage")
     def handle_my_custom_event(username, rId, message, size):
+        print("######",request.event["args"]) 
         messages = writeMessageAndSendResponse(username, rId, message, size)
 
         emit(
@@ -77,6 +89,7 @@ def create_app(test_config=None):
                     "action": "refresh"
                 }
             ),
+            namespace="kang/message",
             broadcast=True
         )
 
