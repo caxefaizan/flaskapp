@@ -6,27 +6,29 @@
     <!-- <div class="card-img">
         <img src="..." />
     </div> -->
-
-    <ul class="list-group">
-        <div class="card-header">
-            {% if not profile %}
-            <h4 class="card-title">Details yet to be filled</h4>
-            {% if g.user['username'] == username %}
-            <a href="{{ url_for('blog.createProfile', username=username) }}" class="btn btn-sm btn-link">Create</a>
-            {% else %}
-            <a href="{{ url_for('blog.index') }}" class="btn btn-sm btn-link">Home</a>
-            {% endif %}
-            {% else %}
-            {% if g.user['username'] == profile['token'] %}
-            <a href="{{ url_for('blog.editProfile', username=username) }}" class="btn btn-sm btn-link">Edit</a>
-            <button id="deleteModalButton" class="btn btn-sm btn-link">Delete</button>
-            {% else %}
-            <a href="{{ url_for('blog.editProfile', username=username) }}" class="btn btn-sm btn-link">Message</a>
-            {% endif %}
-            {% endif %}
-        </div>
-        {% if profile %}
-        <form class="clr-form clr-form-horizontal">
+    {% if request.path ==url_for("blog.viewProfile",
+    username=g.user['username']) %}
+    <div class="card-header">
+        {% if not profile %}
+        <h4 class="card-title">Details yet to be filled</h4>
+        {% if g.user['username'] == username %}
+        <a href="{{ url_for('blog.createProfile', username=username) }}" class="btn btn-sm btn-link">Create</a>
+        {% else %}
+        <a href="{{ url_for('blog.index') }}" class="btn btn-sm btn-link">Home</a>
+        {% endif %}
+        {% else %}
+        {% if g.user['username'] == profile['token'] %}
+        <a href="{{ url_for('blog.editProfile', username=username) }}" class="btn btn-sm btn-link">Edit</a>
+        <button id="deleteModalButton" class="btn btn-sm btn-link">Delete</button>
+        {% else %}
+        <a href="{{ url_for('blog.editProfile', username=username) }}" class="btn btn-sm btn-link">Message</a>
+        {% endif %}
+        {% endif %}
+    </div>
+    {% endif %}
+    <div class="card-block">
+        <form class="clr-form clr-form-horizontal" {% if request.path !=url_for("blog.viewProfile",
+            username=g.user['username']) %}method="post" {% endif %}>
             <h4 class="card-title">Personal Details</h4>
             {% for field in
             ["clientGender","clientCast","clientOccupation","clientEducation","clientAge","clientHeight","clientComplexion"]
@@ -35,8 +37,10 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
-                            value="{{ profile[field] }}" readonly />
+                        <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}"
+                            class="clr-input" {% if request.path==url_for("blog.viewProfile",
+                            username=g.user['username']) %}readonly{% endif %} required
+                            value="{% if profile %}{{ profile[field] }}{% endif %}" />
                     </div>
                 </div>
             </div>
@@ -48,8 +52,10 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
-                            value="{{ sibling[field] }}" readonly />
+                        <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}"
+                            class="clr-input" {% if request.path==url_for("blog.viewProfile",
+                            username=g.user['username']) %}readonly{% endif %} required
+                            value="{% if sibling %}{{ sibling[field] }}{% endif %}" />
                     </div>
                 </div>
             </div>
@@ -61,8 +67,10 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
-                            value="{{ parents[field] }}" readonly />
+                        <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}"
+                            class="clr-input" {% if request.path==url_for("blog.viewProfile",
+                            username=g.user['username']) %}readonly{% endif %} required
+                            value="{% if parents %}{{ parents[field] }}{% endif %}" />
                     </div>
                 </div>
             </div>
@@ -74,8 +82,10 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
-                            value="{{ lifestyle[field] }}" readonly />
+                        <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}"
+                            class="clr-input" {% if request.path==url_for("blog.viewProfile",
+                            username=g.user['username']) %}readonly{% endif %} required
+                            value="{% if lifestyle %}{{ lifestyle[field] }}{% endif %}" />
                     </div>
                 </div>
             </div>
@@ -87,8 +97,10 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
-                            value="{{ residence[field] }}" readonly />
+                        <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}"
+                            class="clr-input" {% if request.path==url_for("blog.viewProfile",
+                            username=g.user['username']) %}readonly{% endif %} required
+                            value="{% if residence %}{{ residence[field] }}{% endif %}" />
                     </div>
                 </div>
             </div>
@@ -101,17 +113,28 @@
                 <label for="{{field}}" class="clr-control-label">{{field | capitalize}}:</label>
                 <div class="clr-control-container">
                     <div class="clr-input-wrapper">
-                        <input type="text" id="{{field}}" placeholder="Enter {{field}}" class="clr-input" required
-                            value="{{ preference[field] }}" readonly />
+                        <input type="text" id="{{field}}" name="{{field}}" placeholder="Enter {{field}}"
+                            class="clr-input" {% if request.path==url_for("blog.viewProfile",
+                            username=g.user['username']) %}readonly{% endif %} required
+                            value="{% if preference %}{{ preference[field] }}{% endif %}" />
                     </div>
                 </div>
             </div>
             {% endfor %}
+            <br><br>
+            {% if request.path != url_for("blog.viewProfile", username=g.user['username']) %}
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">{% if profile %}Update{% else %}Save{% endif %}</button>
+                &nbsp;&nbsp;<a href="{{ url_for('blog.viewProfile', username=username) }}"
+                    class="btn btn-sm btn-link">Discard</a>
+                `
+            </div>
+            {% endif %}
         </form>
-        {% endif %}
-    </ul>
+    </div>
+    <br>
 </div>
-<br>
+{% if request.path == url_for("blog.viewProfile", username=g.user['username']) %}
 <div style="display: none;" id="myModal" class="modal">
     <div class="modal-dialog" role="dialog" aria-hidden="true">
         <div class="modal-content">
@@ -133,4 +156,5 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}

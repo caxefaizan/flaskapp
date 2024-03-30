@@ -27,7 +27,7 @@ def viewProfile(username):
     residence = get_values(username, "residence")
 
     return render_template(
-        "blog/viewProfile.html",
+        "blog/profile.html",
         username=username,
         profile=profile,
         sibling=sibling,
@@ -120,7 +120,7 @@ def editProfile(username):
         return redirect(url_for("blog.viewProfile", username=username))
 
     return render_template(
-        "blog/editProfile.html",
+        "blog/profile.html",
         username=username,
         profile=profile,
         sibling=sibling,
@@ -233,7 +233,7 @@ def createProfile(username):
         #     db.commit()
         #     return redirect(url_for('blog.index'))
 
-    return render_template("blog/createProfile.html", username=username)
+    return render_template("blog/profile.html", username=username)
 
 
 @bp.route("/<username>/profile/delete", methods=("POST",))
