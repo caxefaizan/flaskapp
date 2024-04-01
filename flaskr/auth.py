@@ -57,12 +57,12 @@ def login():
             session.clear()
             session['user_id'] = user['id']
             db.execute(
-                "UPDATE user SET lastActivity = ?"
-                f"WHERE username = '{username}'",
+                f"UPDATE user SET lastActivity = ? WHERE username = '{username}'",
                 (
-                    datetime.now(),
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 ),
             )
+            db.commit()
             return redirect(url_for('blog.index', username=user['username']))
 
         flash(error)

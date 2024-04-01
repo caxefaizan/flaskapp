@@ -5,6 +5,7 @@ from flaskr.db import get_db
 import sqlite3
 from datetime import datetime
 import itertools
+from flaskr.formSchema import sections, profileInputs
 
 bp = Blueprint("blog", __name__)
 
@@ -35,6 +36,8 @@ def viewProfile(username):
         preference=preference,
         lifestyle=lifestyle,
         residence=residence,
+        sections=sections,
+        profileInputs=profileInputs,
     )
 
 
@@ -128,6 +131,8 @@ def editProfile(username):
         preference=preference,
         lifestyle=lifestyle,
         residence=residence,
+        sections=sections,
+        profileInputs=profileInputs,
     )
 
 
@@ -213,26 +218,13 @@ def createProfile(username):
         db.commit()
         flash("Details saved successfully")
         return redirect(url_for("blog.viewProfile", username=username))
-        # title = request.form['title']
-        # body = request.form['body']
-        # error = None
 
-        # if not title:
-        #     error = 'Title is required.'
-
-        # if error is not None:
-        #     flash(error)
-        # else:
-        #     db = get_db()
-        #     db.execute(
-        #         'UPDATE post SET title = ?, body = ?'
-        #         ' WHERE id = ?',
-        #         (title, body, id)
-        #     )
-        #     db.commit()
-        #     return redirect(url_for('blog.index'))
-
-    return render_template("blog/profile.html", username=username)
+    return render_template(
+        "blog/profile.html",
+        username=username,
+        sections=sections,
+        profileInputs=profileInputs,
+    )
 
 
 @bp.route("/<username>/profile/delete", methods=("POST",))
@@ -271,9 +263,7 @@ def deleteProfile(username):
 def messages(username):
     interactions = get_all_messages(username)
 
-    return render_template(
-        "blog/index.html", username=username, args=interactions
-    )
+    return render_template("blog/index.html", username=username, args=interactions)
 
 
 @bp.route("/<username>/message", methods=("GET", "POST"))
@@ -310,7 +300,7 @@ def directMessage(username):
         username=username,
         messages=messages,
         receiver=recipient,
-        size =size
+        size=size,
     )
 
 
@@ -339,7 +329,7 @@ def get_all_messages(username, check_author=True) -> sqlite3.Row:
     db = get_db()
     receivedMessagesFrom = db.execute(
         f"SELECT DISTINCT senderId FROM messages WHERE recipientId = '{g.user['id']}'"
-        " ORDER BY timeStamp DESC LIMIT 5"
+        " ORDER BY timeStamp DESC"
     ).fetchall()
     sentMessagesTo = db.execute(
         f"SELECT DISTINCT recipientId FROM messages WHERE senderId = '{g.user['id']}'"

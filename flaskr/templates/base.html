@@ -93,8 +93,8 @@
   function scrollToBottom() {
     var list = document.querySelector('.scrollable-list');
     list.scrollTop = list.scrollHeight;
+    // Call the function when the page is loaded
   }
-  // Call the function when the page is loaded
   window.onload = scrollToBottom;
   {% endif %}
   var socket = io();
@@ -112,7 +112,7 @@
     socket.emit('clientConnect', { data: 'I\'m connected!' });
   });
 
-  socket.on("serverMessagesUpdate", function (msg) {
+  socket.on("serverMessagesUpdate", "kang/message" function (msg) {
     let myvar = JSON.parse(msg);
     console.log(myvar);
     location.reload();
