@@ -1688,12 +1688,6 @@ textarea {
     }
 }
 
-.clr-row {
-    display: flex;
-    flex-wrap: wrap;
-    margin-right: -.6rem;
-    margin-left: -.6rem
-}
 
 .clr-no-gutters {
     margin-right: 0;

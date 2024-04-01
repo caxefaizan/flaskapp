@@ -68,7 +68,14 @@
     flex: auto;
     margin: 1rem 0 0.25rem 0;
   } */
-  
+  .clr-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -.6rem;
+    margin-left: -.6rem;
+    align-items: center;
+    justify-content: center;
+}
   .flash {
     margin: 1em 0;
     padding: 1em;

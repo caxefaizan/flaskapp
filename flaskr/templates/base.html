@@ -112,7 +112,7 @@
     socket.emit('clientConnect', { data: 'I\'m connected!' });
   });
 
-  socket.on("serverMessagesUpdate", "kang/message" function (msg) {
+  socket.on("serverMessagesUpdate", function (msg) {
     let myvar = JSON.parse(msg);
     console.log(myvar);
     location.reload();

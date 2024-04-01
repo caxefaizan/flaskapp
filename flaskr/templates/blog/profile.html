@@ -41,18 +41,18 @@
                             <div class="clr-control-container">
                                 <div class="clr-input-wrapper">
                                     <input type="text" id="{{key}}" name="{{key}}" placeholder="{{field['placeHolder']}}"
-                                        class="clr-input" {% if request.path==url_for("blog.viewProfile", username=g.user['username']) %} readonly{% endif %} required
+                                        class="clr-input" {% if request.endpoint=="blog.viewProfile" %} readonly{% endif %} required
                                         value="{{savedVal}}" />
                                 </div>
                             </div>
                         </div>
                     {% elif field['type'] == "radio" %}
-                        <div class="clr-form-control {% if request.path==url_for("blog.viewProfile", username=g.user['username']) %} clr-form-control-disabled {% endif %}">
+                        <div class="clr-form-control {% if request.endpoint=='blog.viewProfile' %} clr-form-control-disabled {% endif %}">
                             <label class="clr-control-label">{{field['label'] | capitalize}}:</label>
                             <div class="clr-control-container clr-control-inline">
                                 {% for val in field['values'] %}
                                     <div class="clr-radio-wrapper">
-                                        <input type="radio" id="{{key}}-{{loop.index}}" name="{{key}}" value="{{ val }}" class="clr-radio" {% if request.path==url_for("blog.viewProfile", username=g.user['username']) %} disabled {% endif %} required 
+                                        <input type="radio" id="{{key}}-{{loop.index}}" name="{{key}}" value="{{ val }}" class="clr-radio" {% if request.endpoint=="blog.viewProfile" %} disabled {% endif %} required 
                                         {% if savedVal == val %}checked{% endif %}/>
                                         <label for="{{key}}-{{loop.index}}" class="clr-control-label">{{ val }}</label>
                                     </div>
@@ -65,7 +65,7 @@
                             <div class="clr-control-container">
                                 <div class="clr-input-wrapper">
                                     <input type="number" id="{{key}}" name="{{key}}" placeholder="{{field['placeHolder']}}"
-                                        class="clr-input" {% if request.path==url_for("blog.viewProfile", username=g.user['username']) %} readonly{% endif %} required
+                                        class="clr-input" {% if request.endpoint=="blog.viewProfile" %} readonly{% endif %} required
                                         value="{{savedVal}}" min="{{field['min']}}" max="{{field['max']}}"/>
                                 </div>
                             </div>
@@ -74,7 +74,7 @@
                 {% endfor %}
                 <br>
             {% endfor %}
-            {% if request.path != url_for("blog.viewProfile", username=g.user['username']) %}
+            {% if request.path == url_for("blog.editProfile", username=g.user['username']) %}
                 <div class="card-footer">
                     <button type="submit" class="btn btn-primary">{% if profile %}Update{% else %}Save{% endif %}</button>
                     &nbsp;&nbsp;<a href="{{ url_for('blog.viewProfile', username=username) }}"
