@@ -60,7 +60,7 @@ profileInputs = {
             "placeHolder": "Current Occupation",
         },
         "siblingSpouseCast": {
-            "label": "Surname",
+            "label": "Spouse Surname",
             "type": "text",
             "placeHolder": "Surname",
         },
