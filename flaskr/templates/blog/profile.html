@@ -10,7 +10,7 @@
     {% if request.path ==url_for("blog.viewProfile", username=g.user['username']) %}
         <div class="card-header">
             {% if not profile %}
-                <h4 class="card-title">Details yet to be filled</h4>
+                <h4 class="card-title">Your Details yet to be filled</h4>
                 {% if g.user['username'] == username %}
                     <a href="{{ url_for('blog.createProfile', username=username) }}" class="btn btn-sm btn-link">Create</a>
                 {% else %}
