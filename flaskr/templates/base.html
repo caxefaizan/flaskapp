@@ -89,12 +89,13 @@
   integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
   crossorigin="anonymous"></script>
 <script type="text/javascript" charset="utf-8">
+  // scrolls to bottom on page load
   {% if size | int == 1 %}
   function scrollToBottom() {
     var list = document.querySelector('.scrollable-list');
     list.scrollTop = list.scrollHeight;
-    // Call the function when the page is loaded
   }
+  // Call the function when the page is loaded
   window.onload = scrollToBottom;
   {% endif %}
   var socket = io();
@@ -109,9 +110,10 @@
   });
 
   socket.on('connect', function () {
-    socket.emit('clientConnect', { data: 'I\'m connected!' });
+    var rId = parseInt(new URLSearchParams(window.location.search).get("recipientId"));
+    var username = window.location.href.split('/')[3];
+    socket.emit('clientConnect', { sender: username, receiver: rId });
   });
-
   socket.on("serverMessagesUpdate", function (msg) {
     let myvar = JSON.parse(msg);
     console.log(myvar);

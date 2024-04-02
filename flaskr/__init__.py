@@ -1,20 +1,10 @@
 import os, json
 
 from flask import Flask, request
-from flask_socketio import SocketIO, emit, Namespace
+from flask_socketio import SocketIO, emit, join_room
 from flaskr.db import get_db
 from datetime import datetime
 
-# class MySocketNamespace(Namespace):
-#     def on_connect(self, arg):
-#         print(request.event["args"]) 
-#         print(f"Client {arg} connected!")
-
-#     def on_disconnect(self, arg):
-#         print(f"Client {arg} disconnected!")
-
-#     def on_send_message(self):
-#         emit('message_response', "message received")
 
 def create_app(test_config=None):
     # create and configure the app
@@ -24,7 +14,7 @@ def create_app(test_config=None):
         DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
     )
     # app.config.from_pyfile("config.py")
-    
+
     socketio = SocketIO(app)
 
     if test_config is None:
@@ -60,8 +50,8 @@ def create_app(test_config=None):
             "INSERT INTO messages (senderId, recipientId, messageText, timeStamp)"
             " VALUES (?, ?, ?, ?)",
             (
-                sender['id'],
-                recipient['id'],
+                sender["id"],
+                recipient["id"],
                 message,
                 datetime.now(),
             ),
@@ -69,28 +59,39 @@ def create_app(test_config=None):
         db.commit()
         print("Message saved successfully")
 
-        return blog.get_messages(sender['id'], recipientId, int(size))
-    
-    # socketio.on_namespace(MySocketNamespace('/test'))
+        return blog.get_messages(sender["id"], recipientId, int(size))
+
+    def get_room_name(sender, recipientId):
+        recipient = (
+            get_db()
+            .execute(
+                "SELECT u.*" f" FROM user u " f" WHERE u.id = '{recipientId}'",
+            )
+            .fetchone()
+        )
+        x = [sender, recipient["username"]]
+        x.sort()
+        room_name = "_".join(x)
+        return room_name
 
     @socketio.on("clientConnect")
     def handle_my_custom_event(json):
-        print('client: ' + str(json))
+        room_name = get_room_name(json["sender"], json["receiver"])
+        # print(f"client: {json['sender']} connected to room {room_name}")
+        join_room(room_name)
 
+    # when message is sent from client
     @socketio.on("submitMessage")
     def handle_my_custom_event(username, rId, message, size):
-        print("######",request.event["args"]) 
+        room_name = get_room_name(username, rId)
+        # store message in db
         messages = writeMessageAndSendResponse(username, rId, message, size)
-
+        # trigger function on client
         emit(
-            "serverMessagesUpdate", 
-            json.dumps(
-                {
-                    "action": "refresh"
-                }
-            ),
-            namespace="kang/message",
-            broadcast=True
+            "serverMessagesUpdate",
+            json.dumps({"action": "refresh"}),
+            to=room_name,  # send to room
+            # namespace="/caxe"
         )
 
     from . import db
