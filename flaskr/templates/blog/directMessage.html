@@ -13,7 +13,7 @@
       Last Online : {{ receiver['lastActivity'] }}
     </p>
   </div>
-  <ul class="scrollable-list" class="list-group">
+  <ul id = "messages" class="scrollable-list" class="list-group">
     <a href="{{ url_for('blog.directMessage', username=username) }}?recipientId={{receiver['id']}}&size={{size|int + 1}}" class="btn btn-sm btn-link">&nbsp;&nbsp;Load Older{{recipientId}}</a>
     {% for message in messages|reverse %}
     <li id="message-li-{{loop.revindex}}" class="list-group-item">

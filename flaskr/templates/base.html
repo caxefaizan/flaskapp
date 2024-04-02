@@ -90,11 +90,11 @@
   crossorigin="anonymous"></script>
 <script type="text/javascript" charset="utf-8">
   // scrolls to bottom on page load
-  {% if size | int == 1 %}
   function scrollToBottom() {
     var list = document.querySelector('.scrollable-list');
     list.scrollTop = list.scrollHeight;
   }
+  {% if size | int == 1 %}
   // Call the function when the page is loaded
   window.onload = scrollToBottom;
   {% endif %}
@@ -106,7 +106,7 @@
     var rId = parseInt(new URLSearchParams(window.location.search).get("recipientId"));
     var username = window.location.href.split('/')[3];
     socket.emit('submitMessage', username, rId, message, {{ size }}); // Emit a WebSocket event
-  document.getElementById('messageBody').value = ''; // Clear input field
+    document.getElementById('messageBody').value = ''; // Clear input field
   });
 
   socket.on('connect', function () {
@@ -116,9 +116,19 @@
   });
   socket.on("serverMessagesUpdate", function (msg) {
     let myvar = JSON.parse(msg);
-    console.log(myvar);
-    location.reload();
+    message = formatSender(myvar.message)
+    document.getElementById("messages").innerHTML += message;
+    scrollToBottom();
+    // location.reload();
   });
+
+
+  function formatSender(message) {
+    if (!message.includes(window.location.href.split('/')[3])){
+      message = message.replace("label-info","label-success");
+    }
+    return message;
+  }
 </script>
 {% endif %}
 

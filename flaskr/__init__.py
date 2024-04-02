@@ -1,6 +1,6 @@
 import os, json
 
-from flask import Flask, request
+from flask import Flask
 from flask_socketio import SocketIO, emit, join_room
 from flaskr.db import get_db
 from datetime import datetime
@@ -57,7 +57,6 @@ def create_app(test_config=None):
             ),
         )
         db.commit()
-        print("Message saved successfully")
 
         return blog.get_messages(sender["id"], recipientId, int(size))
 
@@ -86,12 +85,13 @@ def create_app(test_config=None):
         room_name = get_room_name(username, rId)
         # store message in db
         messages = writeMessageAndSendResponse(username, rId, message, size)
+
+        updateString = f'''<li id="message-li" class="list-group-item"><span id="message-span-{{loop.revindex}}" class="label label-info">{username}: </span>{message}</li>'''
         # trigger function on client
         emit(
             "serverMessagesUpdate",
-            json.dumps({"action": "refresh"}),
+            json.dumps({"message": updateString}),
             to=room_name,  # send to room
-            # namespace="/caxe"
         )
 
     from . import db
