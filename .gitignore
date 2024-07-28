@@ -16,3 +16,4 @@ build/
 temp/
 
 .env
+fake.py

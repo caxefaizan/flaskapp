@@ -19,6 +19,7 @@ def is_valid_email(email):
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
+    count = get_visitor_count()
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -51,11 +52,11 @@ def register():
         flash(error)
     else:
         increment_visitor_count()
-        count = get_visitor_count()
     return render_template('auth/register.html', visitor_count=count)
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
+    count = get_visitor_count()
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -83,7 +84,6 @@ def login():
         flash(error)
     else:
         increment_visitor_count()
-        count = get_visitor_count()
     return render_template('auth/login.html', visitor_count=count)
 
 @bp.before_app_request
