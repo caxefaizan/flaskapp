@@ -65,7 +65,7 @@ profileInputs = {
             "placeHolder": "Surname",
         },
         "siblingSpouseOccupation": {
-            "label": "Occupation",
+            "label": "Spouse Occupation",
             "type": "text",
             "placeHolder": "Current Occupation",
         },
@@ -104,7 +104,7 @@ profileInputs = {
             "values": ["Regular", "Irregular"],
         },
         "religiousSect": {
-            "label": "Religious Sect",
+            "label": "Religious Identity",
             "type": "text",
             "placeHolder": "eg. Sunni, AhleHadees",
         },
@@ -115,13 +115,13 @@ profileInputs = {
             "type": "text",
             "placeHolder": "eg. Lalchowk,Srinagar",
         },
-        "size": {
-            "label": "House Area",
+        "permanentAddress": {
+            "label": "Permanent Address",
             "type": "text",
-            "placeHolder": "eg. 10 Marlas",
+            "placeHolder": "eg. Dalgate, Srinagar",
         },
         "oldAddress": {
-            "label": "Present Address",
+            "label": "Old Address",
             "type": "text",
             "placeHolder": "eg. Dalgate, Srinagar",
         },

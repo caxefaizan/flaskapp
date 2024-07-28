@@ -10,7 +10,7 @@
     <div class="branding">
       <a href="{{ url_for('index') }}">
         <cds-icon shape="vm-bug"></cds-icon>
-        <span class="title">StealthMode</span>
+        <span class="title">StealthMatch</span>
       </a>
     </div>
     <div class="header-nav">
@@ -30,6 +30,7 @@
       </a>
       {% endif %}
       {% endif %}
+      <a class="active nav-link nav-icon" >Visitor Count: {{ visitor_count }}</a>
     </div>
   </header>
   {% if g.user %}

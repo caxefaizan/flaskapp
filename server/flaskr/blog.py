@@ -6,6 +6,7 @@ import sqlite3
 from datetime import datetime
 import itertools
 from flaskr.formSchema import sections, profileInputs
+from flaskr.visitors import get_visitor_count
 
 bp = Blueprint("blog", __name__)
 
@@ -13,8 +14,9 @@ bp = Blueprint("blog", __name__)
 @bp.route("/")
 @login_required
 def index():
+    count = get_visitor_count()
     profiles = get_profiles()
-    return render_template("blog/index.html", args=profiles)
+    return render_template("blog/index.html", args=profiles, visitor_count=count)
 
 
 @bp.route("/<username>/profile/view", methods=("GET",))
@@ -26,7 +28,7 @@ def viewProfile(username):
     preference = get_values(username, "preference")
     lifestyle = get_values(username, "lifestyle")
     residence = get_values(username, "residence")
-
+    count = get_visitor_count()
     return render_template(
         "blog/profile.html",
         username=username,
@@ -38,12 +40,14 @@ def viewProfile(username):
         residence=residence,
         sections=sections,
         profileInputs=profileInputs,
+        visitor_count=count,
     )
 
 
 @bp.route("/<username>/profile/edit", methods=("GET", "POST"))
 @login_required
 def editProfile(username):
+    count = get_visitor_count()
     if g.user["username"] != username:
         abort(403, f"Unauthorized!")
     profile = get_values(username, "client")
@@ -100,11 +104,10 @@ def editProfile(username):
             ),
         )
         db.execute(
-            "UPDATE residence SET presentAddress = ?, size = ?, oldAddress = ?"
+            "UPDATE residence SET presentAddress = ?, oldAddress = ?"
             f"WHERE token = '{username}'",
             (
                 request.form["presentAddress"],
-                request.form["size"],
                 request.form["oldAddress"],
             ),
         )
@@ -133,12 +136,14 @@ def editProfile(username):
         residence=residence,
         sections=sections,
         profileInputs=profileInputs,
+        visitor_count=count,
     )
 
 
 @bp.route("/<username>/profile/create", methods=("GET", "POST"))
 @login_required
 def createProfile(username):
+    count = get_visitor_count()
     if g.user["username"] != username:
         abort(403, f"Unauthorized!")
     profile = get_values(username, "client")
@@ -195,12 +200,12 @@ def createProfile(username):
             ),
         )
         db.execute(
-            "INSERT INTO residence (token, presentAddress, size, oldAddress)"
+            "INSERT INTO residence (token, presentAddress, permanentAddress, oldAddress)"
             " VALUES (?, ?, ?, ?)",
             (
                 username,
                 request.form["presentAddress"],
-                request.form["size"],
+                request.form["permanentAddress"],
                 request.form["oldAddress"],
             ),
         )
@@ -224,6 +229,7 @@ def createProfile(username):
         username=username,
         sections=sections,
         profileInputs=profileInputs,
+        visitor_count=count,
     )
 
 
@@ -262,13 +268,14 @@ def deleteProfile(username):
 @login_required
 def messages(username):
     interactions = get_all_messages(username)
-
-    return render_template("blog/index.html", username=username, args=interactions)
+    count = get_visitor_count()
+    return render_template("blog/index.html", username=username, args=interactions, visitor_count=count)
 
 
 @bp.route("/<username>/message", methods=("GET", "POST"))
 @login_required
 def directMessage(username):
+    count = get_visitor_count()
     recipientId = request.args.get("recipientId")
     size = request.args.get("size")
     recipient = (
@@ -301,6 +308,7 @@ def directMessage(username):
         messages=messages,
         receiver=recipient,
         size=size,
+        visitor_count=count
     )
 
 
@@ -308,20 +316,32 @@ def directMessage(username):
 @login_required
 def account(username):
     # post = get_post(username)
-
-    return render_template("blog/account.html", username=username)
+    count = get_visitor_count()
+    return render_template("blog/account.html", username=username, visitor_count=count)
 
 
 def get_messages(userId, receiver, size, check_author=True) -> sqlite3.Row:
     messageSize = int(size) * 5
-    messages = (
+    messages = []
+    messages.append(
         get_db()
         .execute(
-            f"SELECT m.* FROM messages m WHERE (m.senderId = '{userId}' OR m.senderId = '{receiver}') AND (m.recipientId = '{receiver}' OR m.recipientId = '{userId}')"
+            f"SELECT m.* FROM messages m WHERE (m.senderId = '{userId}') AND (m.recipientId = '{receiver}')"
             f" ORDER BY m.timeStamp DESC LIMIT {messageSize}"
         )
         .fetchmany(messageSize)
     )
+    messages.append(
+        get_db()
+        .execute(
+            f"SELECT m.* FROM messages m WHERE (m.senderId = '{receiver}') AND (m.recipientId = '{userId}')"
+            f" ORDER BY m.timeStamp DESC LIMIT {messageSize}"
+        )
+        .fetchmany(messageSize)
+    )
+    messages = [item for row in messages for item in row]
+    print(messages)
+
     return messages
 
 
@@ -336,6 +356,7 @@ def get_all_messages(username, check_author=True) -> sqlite3.Row:
     ).fetchall()
     senders = list(itertools.chain.from_iterable(receivedMessagesFrom))
     receivers = list(itertools.chain.from_iterable(sentMessagesTo))
+    print(senders, receivers)
     interactions = list(set(senders) | set(receivers))
     interactions = ",".join(map(str, interactions))
     interactions = db.execute(
@@ -353,41 +374,6 @@ def get_values(username, table_name, check_author=True) -> sqlite3.Row:
         )
         .fetchone()
     )
-
-    # if profile:
-    #     profile = (
-    #         get_db()
-    #         .execute(
-    #             f"""
-    #             SELECT c.*,
-    #             s.sex AS sibling_sex,
-    #             s.occupation AS sibling_occupation,
-    #             s.spouseCast AS sibling_spouse_cast,
-    #             p.fathersOccupation AS fathers_occupation,
-    #             p.mothersOccupation AS mothers_occupation,
-    #             p.mothersCast AS mothers_cast,
-    #             l.smoking AS smoking_habit,
-    #             l.prayers AS prayer_habit,
-    #             l.religiousSect AS religious_sect,
-    #             r.presentAddress AS present_address,
-    #             r.oldAddress AS old_address,
-    #             cp.clientCast,
-    #             cp.occupation,
-    #             cp.education,
-    #             cp.age,
-    #             cp.height,
-    #             cp.complexion
-    #             FROM client c
-    #             LEFT JOIN sibling s ON c.preferenceToken = s.relatedToken
-    #             LEFT JOIN parents p ON c.preferenceToken = p.relatedToken
-    #             LEFT JOIN lifestyle l ON c.preferenceToken = l.relatedToken
-    #             LEFT JOIN residence r ON c.preferenceToken = r.relatedToken
-    #             LEFT JOIN client cp ON c.preferenceToken = cp.token
-    #             WHERE c.token = {username}
-    #         """
-    #         )
-    #         .fetchone()
-    #     )
 
     return profile
 

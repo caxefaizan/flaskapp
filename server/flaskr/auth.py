@@ -4,7 +4,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from werkzeug.security import check_password_hash, generate_password_hash
-
+from flaskr.visitors import increment_visitor_count, get_visitor_count
 from flaskr.db import get_db
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -49,8 +49,10 @@ def register():
                 return redirect(url_for("auth.login"))
 
         flash(error)
-
-    return render_template('auth/register.html')
+    else:
+        increment_visitor_count()
+        count = get_visitor_count()
+    return render_template('auth/register.html', visitor_count=count)
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
@@ -79,8 +81,10 @@ def login():
             return redirect(url_for('blog.index', username=user['username']))
 
         flash(error)
-
-    return render_template('auth/login.html')
+    else:
+        increment_visitor_count()
+        count = get_visitor_count()
+    return render_template('auth/login.html', visitor_count=count)
 
 @bp.before_app_request
 def load_logged_in_user():
