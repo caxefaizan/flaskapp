@@ -1,4 +1,12 @@
 {% extends 'base.html' %}
+{% if profileDta %}
+    {% set profile = profileData[0] %}
+    {% set sibling = profileData[1] %}
+    {% set parents = profileData[2] %}
+    {% set preference = profileData[3] %}
+    {% set lifestyle = profileData[4] %}
+    {% set residence = profileData[5] %}
+{% endif %}
 
 {% block content %}
 <div class="clr-row">
