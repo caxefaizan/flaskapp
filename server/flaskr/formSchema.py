@@ -34,7 +34,7 @@ profileInputs = {
             "placeHolder": "Age",
             "min": 18,
             "max": 60,
-            "step": 1
+            "step": 1,
         },
         "clientHeight": {
             "label": "Height",
@@ -143,7 +143,7 @@ profileInputs = {
             "placeHolder": "Preferred Age Max",
             "min": 18,
             "max": 60,
-            "step": 1
+            "step": 1,
         },
         "preferenceHeight": {
             "label": "Preferred Height",

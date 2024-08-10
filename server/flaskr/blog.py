@@ -32,7 +32,6 @@ def viewProfile(username):
     action = request.path.split("/")[-1]
     count, profileData = preRouteChecks(g, action, username)
 
-
     return render_template(
         "blog/profile.html",
         username=username,

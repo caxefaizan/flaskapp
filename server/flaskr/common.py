@@ -6,6 +6,7 @@ from werkzeug.exceptions import abort
 from flask import request
 from datetime import datetime
 
+
 def get_messages(userId, receiver, size, check_author=True) -> sqlite3.Row:
     messageSize = int(size) * 5
     messages = []
@@ -297,31 +298,31 @@ def deleteProfileData(username, db):
 
 
 def writeMessageAndSendResponse(username, recipientId, message, size):
-        recipient = (
-            get_db()
-            .execute(
-                "SELECT u.*" f" FROM user u " f" WHERE u.id = '{recipientId}'",
-            )
-            .fetchone()
+    recipient = (
+        get_db()
+        .execute(
+            "SELECT u.*" f" FROM user u " f" WHERE u.id = '{recipientId}'",
         )
-        sender = (
-            get_db()
-            .execute(
-                "SELECT u.*" f" FROM user u " f" WHERE u.username = '{username}'",
-            )
-            .fetchone()
+        .fetchone()
+    )
+    sender = (
+        get_db()
+        .execute(
+            "SELECT u.*" f" FROM user u " f" WHERE u.username = '{username}'",
         )
-        db = get_db()
-        db.execute(
-            "INSERT INTO messages (senderId, recipientId, messageText, timeStamp)"
-            " VALUES (?, ?, ?, ?)",
-            (
-                sender["id"],
-                recipient["id"],
-                message,
-                datetime.now(),
-            ),
-        )
-        db.commit()
+        .fetchone()
+    )
+    db = get_db()
+    db.execute(
+        "INSERT INTO messages (senderId, recipientId, messageText, timeStamp)"
+        " VALUES (?, ?, ?, ?)",
+        (
+            sender["id"],
+            recipient["id"],
+            message,
+            datetime.now(),
+        ),
+    )
+    db.commit()
 
-        return get_messages(sender["id"], recipientId, int(size))
+    return get_messages(sender["id"], recipientId, int(size))

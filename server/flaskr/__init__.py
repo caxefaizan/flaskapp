@@ -2,7 +2,6 @@ import os, json
 from flask import Flask
 from flask_socketio import SocketIO, emit, join_room
 from flaskr.db import get_db
-from datetime import datetime
 from flaskr.common import writeMessageAndSendResponse
 
 
