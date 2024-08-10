@@ -1,9 +1,9 @@
 import os, json
-
 from flask import Flask
 from flask_socketio import SocketIO, emit, join_room
 from flaskr.db import get_db
 from datetime import datetime
+from flaskr.common import writeMessageAndSendResponse
 
 
 def create_app(test_config=None):
@@ -29,36 +29,6 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
-
-    def writeMessageAndSendResponse(username, recipientId, message, size):
-        recipient = (
-            get_db()
-            .execute(
-                "SELECT u.*" f" FROM user u " f" WHERE u.id = '{recipientId}'",
-            )
-            .fetchone()
-        )
-        sender = (
-            get_db()
-            .execute(
-                "SELECT u.*" f" FROM user u " f" WHERE u.username = '{username}'",
-            )
-            .fetchone()
-        )
-        db = get_db()
-        db.execute(
-            "INSERT INTO messages (senderId, recipientId, messageText, timeStamp)"
-            " VALUES (?, ?, ?, ?)",
-            (
-                sender["id"],
-                recipient["id"],
-                message,
-                datetime.now(),
-            ),
-        )
-        db.commit()
-
-        return blog.get_messages(sender["id"], recipientId, int(size))
 
     def get_room_name(sender, recipientId):
         recipient = (
@@ -86,7 +56,7 @@ def create_app(test_config=None):
         # store message in db
         messages = writeMessageAndSendResponse(username, rId, message, size)
 
-        updateString = f'''<li id="message-li" class="list-group-item"><span id="message-span-{{loop.revindex}}" class="label label-info">{username}: </span>{message}</li>'''
+        updateString = f"""<li id="message-li" class="list-group-item"><span id="message-span-{{loop.revindex}}" class="label label-info">{username}: </span>{message}</li>"""
         # trigger function on client
         emit(
             "serverMessagesUpdate",

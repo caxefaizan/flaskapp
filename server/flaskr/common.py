@@ -4,7 +4,7 @@ import itertools
 from flaskr.visitors import get_visitor_count
 from werkzeug.exceptions import abort
 from flask import request
-
+from datetime import datetime
 
 def get_messages(userId, receiver, size, check_author=True) -> sqlite3.Row:
     messageSize = int(size) * 5
@@ -294,3 +294,34 @@ def deleteProfileData(username, db):
         f"DELETE FROM sibling WHERE token = '{username}'",
     )
     db.commit()
+
+
+def writeMessageAndSendResponse(username, recipientId, message, size):
+        recipient = (
+            get_db()
+            .execute(
+                "SELECT u.*" f" FROM user u " f" WHERE u.id = '{recipientId}'",
+            )
+            .fetchone()
+        )
+        sender = (
+            get_db()
+            .execute(
+                "SELECT u.*" f" FROM user u " f" WHERE u.username = '{username}'",
+            )
+            .fetchone()
+        )
+        db = get_db()
+        db.execute(
+            "INSERT INTO messages (senderId, recipientId, messageText, timeStamp)"
+            " VALUES (?, ?, ?, ?)",
+            (
+                sender["id"],
+                recipient["id"],
+                message,
+                datetime.now(),
+            ),
+        )
+        db.commit()
+
+        return get_messages(sender["id"], recipientId, int(size))
