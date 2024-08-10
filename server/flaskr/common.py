@@ -5,6 +5,7 @@ from flaskr.visitors import get_visitor_count
 from werkzeug.exceptions import abort
 from flask import request
 
+
 def get_messages(userId, receiver, size, check_author=True) -> sqlite3.Row:
     messageSize = int(size) * 5
     messages = []
@@ -262,7 +263,9 @@ def preRouteChecks(g, action, username):
         if g.user["username"] != username:
             abort(403, f"Unauthorized!")
 
-    if (action == "delete" and request.method == "GET") or (action == "view" and request.method == "POST"):
+    if (action == "delete" and request.method == "GET") or (
+        action == "view" and request.method == "POST"
+    ):
         abort(405, f"Method not allowed!")
 
     count = get_visitor_count()
@@ -270,10 +273,11 @@ def preRouteChecks(g, action, username):
 
     return count, profileData
 
+
 def deleteProfileData(username, db):
     db.execute(
-            f"DELETE FROM client WHERE token = '{username}'",
-        )
+        f"DELETE FROM client WHERE token = '{username}'",
+    )
     db.execute(
         f"DELETE FROM lifestyle WHERE token = '{username}'",
     )
