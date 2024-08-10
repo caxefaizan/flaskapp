@@ -30,17 +30,8 @@ def index():
 @login_required
 def viewProfile(username):
     action = request.path.split("/")[-1]
-    # if not action in ["view", "create", "edit", "delete"]:
-    #     abort(404, "Page not found!")
     count, profileData = preRouteChecks(g, action, username)
 
-    # if action in ["create", "edit"] and request.method == "POST":
-    #     createUpdateProfileData(username, request.form, action)
-    #     flash("Details saved successfully")
-    #     return redirect(url_for("blog.viewProfile", username=username, action='view'))
-
-    # if action == "create" and profileData[0]:
-    #     return redirect(url_for("blog.viewProfile", username=username, action='view'))
 
     return render_template(
         "blog/profile.html",
@@ -113,7 +104,7 @@ def deleteProfile(username):
 @bp.route("/<username>/messages", methods=("GET", "POST"))
 @login_required
 def messages(username):
-    interactions = get_all_messages(username)
+    interactions = get_all_messages(g, username)
     count = get_visitor_count()
     return render_template(
         "blog/index.html", username=username, args=interactions, visitor_count=count

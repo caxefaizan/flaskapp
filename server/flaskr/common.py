@@ -29,7 +29,7 @@ def get_messages(userId, receiver, size, check_author=True) -> sqlite3.Row:
     return messages
 
 
-def get_all_messages(username, check_author=True) -> sqlite3.Row:
+def get_all_messages(g, username, check_author=True) -> sqlite3.Row:
     db = get_db()
     receivedMessagesFrom = db.execute(
         f"SELECT DISTINCT senderId FROM messages WHERE recipientId = '{g.user['id']}'"
@@ -40,7 +40,6 @@ def get_all_messages(username, check_author=True) -> sqlite3.Row:
     ).fetchall()
     senders = list(itertools.chain.from_iterable(receivedMessagesFrom))
     receivers = list(itertools.chain.from_iterable(sentMessagesTo))
-    print(senders, receivers)
     interactions = list(set(senders) | set(receivers))
     interactions = ",".join(map(str, interactions))
     interactions = db.execute(
@@ -122,6 +121,7 @@ def getProfileData(username):
 def createUpdateProfileData(username, formData, action):
     db = get_db()
     if action == "create":
+        print(formData["clientGender"])
         db.execute(
             "INSERT INTO client (clientGender, token, clientCast, clientOccupation, clientEducation, clientAge, clientHeight, clientComplexion)"
             " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -140,7 +140,7 @@ def createUpdateProfileData(username, formData, action):
             "INSERT INTO preference (preferenceGender, token, preferenceOccupation, preferenceEducation, preferenceAge, preferenceHeight, preferencecomplexion)"
             " VALUES (?, ?, ?, ?, ?, ?, ?)",
             (
-                "Female" if formData["clientGender"] == "Male" else "Male",
+                "Female" if formData["clientGender"] == "M" else "Male",
                 username,
                 formData["preferenceOccupation"],
                 formData["preferenceEducation"],
